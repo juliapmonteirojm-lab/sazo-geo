@@ -1,0 +1,5 @@
+.env
+data/raw/
+data/processed/*.geojson
+__pycache__/
+*.pyc

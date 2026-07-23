@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sazô — Análise de mercado geográfico</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>/*__DATA__*/</script>
+<style>
+  :root{
+    --terra:#c2552b;
+    --terra-deep:#a1401d;
+    --terra-soft:#e8b394;
+    --olive:#6b7f3f;
+    --olive-deep:#55662f;
+    --ochre:#d9a441;
+    --brown:#7a5c49;
+    --bg:#faf6f0;
+    --surface:#ffffff;
+    --surface-2:#f3ece2;
+    --ink:#2e2620;
+    --ink-2:#6d6155;
+    --line:#e6dccd;
+    --shadow:0 1px 2px rgba(60,42,25,.06),0 6px 20px rgba(60,42,25,.07);
+    --chorop-1:#f7e6d6;
+    --chorop-2:#efc6a4;
+    --chorop-3:#e39e6d;
+    --chorop-4:#cc6f3d;
+    --chorop-5:#a84b22;
+    --hl-bg:#fbeee4;
+    --focus:#c2552b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --terra:#e07a4d;
+      --terra-deep:#ef9468;
+      --terra-soft:#8a4a2c;
+      --olive:#9db26a;
+      --olive-deep:#b3c581;
+      --ochre:#dfb35e;
+      --brown:#b09482;
+      --bg:#191512;
+      --surface:#221d19;
+      --surface-2:#2b241e;
+      --ink:#f0e8de;
+      --ink-2:#b0a294;
+      --line:#3a322a;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+      --chorop-1:#4a382b;
+      --chorop-2:#6e4a30;
+      --chorop-3:#9a5c33;
+      --chorop-4:#c9713a;
+      --chorop-5:#ef9051;
+      --hl-bg:#332319;
+      --focus:#e07a4d;
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.55;
+    font-size:16px;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 72px}
+
+  /* ---------- Header ---------- */
+  header{padding:56px 0 8px}
+  .wordmark{
+    font-size:clamp(2.6rem,6vw,3.6rem);
+    font-weight:800;
+    letter-spacing:-.03em;
+    margin:0;
+    color:var(--terra);
+  }
+  .wordmark .dot{color:var(--olive)}
+  .kicker{
+    margin:.35rem 0 0;
+    font-size:1.12rem;
+    color:var(--ink-2);
+    font-weight:500;
+  }
+  .meta-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+  .meta-date{font-size:.85rem;color:var(--ink-2);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+  .badge{
+    display:inline-block;font-size:.74rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--brown);background:var(--surface-2);border:1px solid var(--line);
+    padding:3px 10px;border-radius:999px;
+  }
+  .thesis{
+    margin:26px 0 0;
+    padding:18px 22px;
+    background:var(--hl-bg);
+    border-left:4px solid var(--terra);
+    border-radius:0 10px 10px 0;
+    font-size:1.06rem;
+  }
+  .thesis strong{color:var(--terra)}
+
+  /* ---------- KPIs ---------- */
+  .kpis{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+    margin-top:34px;
+  }
+  .kpi{
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:18px 18px 16px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .kpi .label{font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+  .kpi .value{font-size:1.75rem;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+  .kpi .sub{font-size:.83rem;color:var(--ink-2)}
+  .kpi.hero{
+    background:linear-gradient(140deg,var(--hl-bg),var(--surface));
+    border-color:var(--terra-soft);
+  }
+  .kpi.hero .value{color:var(--terra)}
+  .kpi .live-tag{
+    align-self:flex-start;font-size:.66rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--olive);border:1px solid var(--olive);border-radius:999px;padding:1px 7px;margin-top:2px;
+  }
+
+  /* ---------- Sections ---------- */
+  section{margin-top:52px}
+  h2{
+    font-size:1.35rem;font-weight:800;letter-spacing:-.015em;margin:0 0 6px;
+  }
+  .section-sub{margin:0 0 18px;color:var(--ink-2);font-size:.95rem}
+
+  /* ---------- Map ---------- */
+  .map-wrap{
+    position:relative;border-radius:16px;overflow:hidden;
+    border:1px solid var(--line);box-shadow:var(--shadow);
+    background:var(--surface-2);
+  }
+  #map{height:520px;width:100%;background:var(--surface-2)}
+  @media (max-width:700px){ #map{height:360px} }
+  .map-caption{margin:12px 2px 0;font-size:.9rem;color:var(--ink-2)}
+  .map-fallback{
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    height:100%;padding:32px;color:var(--ink-2);font-size:1rem;
+  }
+  .leaflet-container{font:inherit}
+  .leaflet-popup-content-wrapper,.leaflet-popup-tip{
+    background:var(--surface);color:var(--ink);box-shadow:var(--shadow);
+  }
+  .leaflet-popup-content{margin:12px 16px;line-height:1.45}
+  .leaflet-container a.leaflet-popup-close-button{color:var(--ink-2)}
+  .popup-title{font-weight:800;font-size:1rem;margin-bottom:2px}
+  .popup-score{font-size:.8rem;font-weight:700;color:var(--terra);margin-bottom:6px}
+  .popup-grid{font-size:.85rem;color:var(--ink-2)}
+  .popup-grid b{color:var(--ink)}
+  .flame-pin{
+    width:30px;height:30px;border-radius:50% 50% 50% 4px;
+    background:var(--terra);transform:rotate(0deg);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.35);
+    border:2px solid #fff;
+    font-size:15px;line-height:1;
+  }
+  @media (prefers-color-scheme: dark){ .flame-pin{border-color:#221d19} }
+
+  /* map overlay panels */
+  .map-panel{
+    position:absolute;z-index:800;
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    box-shadow:var(--shadow);
+    font-size:.8rem;
+  }
+  .layers-panel{top:12px;right:12px;padding:10px 14px 12px;max-width:190px}
+  .layers-panel .panel-title{font-weight:800;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);margin-bottom:6px}
+  .layers-panel label{
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+    padding:3px 0;user-select:none;
+  }
+  .layers-panel input[type=checkbox]{accent-color:var(--terra);width:15px;height:15px;margin:0}
+  .layers-panel .swatch{
+    width:16px;height:0;border-top-width:3px;border-top-style:solid;flex:none;border-radius:2px;
+  }
+  .layers-panel .swatch.dashed{border-top-style:dashed}
+  .layers-panel .swatch.block{height:10px;border:none;border-radius:3px}
+
+  .legend-panel{left:12px;bottom:12px;padding:10px 14px 12px}
+  .legend-panel .panel-title{font-weight:800;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);margin-bottom:6px}
+  .legend-row{display:flex;align-items:center;gap:7px;padding:1.5px 0;color:var(--ink-2)}
+  .legend-row .box{width:14px;height:11px;border-radius:2px;flex:none}
+  .legend-row .ln{width:16px;border-top:3px solid;flex:none;border-radius:2px}
+  .legend-row .ln.dashed{border-top-style:dashed}
+  .legend-sep{border-top:1px solid var(--line);margin:7px 0}
+  @media (max-width:700px){
+    .legend-panel{font-size:.72rem;padding:8px 10px}
+    .layers-panel{font-size:.72rem;padding:8px 10px;max-width:160px}
+  }
+
+  /* ---------- Ranking table ---------- */
+  .table-scroll{
+    overflow-x:auto;border:1px solid var(--line);border-radius:14px;
+    background:var(--surface);box-shadow:var(--shadow);
+    -webkit-overflow-scrolling:touch;
+  }
+  table{border-collapse:collapse;width:100%;min-width:760px;font-size:.9rem}
+  thead th{
+    text-align:left;font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--ink-2);padding:12px 14px;border-bottom:2px solid var(--line);
+    white-space:nowrap;background:var(--surface);
+  }
+  thead th.sortable{cursor:pointer;user-select:none}
+  thead th.sortable:hover{color:var(--terra)}
+  thead th .arrow{font-size:.65rem;margin-left:3px}
+  tbody td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr{cursor:pointer;transition:background .12s}
+  tbody tr:hover{background:var(--hl-bg)}
+  .rank-num{color:var(--ink-2);font-weight:700;font-variant-numeric:tabular-nums}
+  .zona-name{font-weight:700}
+  .score-pill{
+    display:inline-block;min-width:42px;text-align:center;
+    font-weight:800;font-variant-numeric:tabular-nums;
+    padding:2px 8px;border-radius:8px;color:#fff;font-size:.85rem;
+  }
+  .score-delta{font-size:.72rem;color:var(--ink-2);margin-left:5px}
+  td.num{font-variant-numeric:tabular-nums;text-align:right}
+  .receita-cell{font-weight:700;color:var(--olive-deep)}
+  .comp-bars{display:flex;flex-direction:column;gap:2px;width:110px}
+  .comp-bar{display:flex;align-items:center;gap:5px}
+  .comp-bar .tag{width:12px;font-size:.6rem;font-weight:800;color:var(--ink-2);text-align:center}
+  .comp-bar .track{flex:1;height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+  .comp-bar .fill{height:100%;border-radius:3px}
+  .comp-legend{display:flex;flex-wrap:wrap;gap:12px;margin:10px 2px 0;font-size:.76rem;color:var(--ink-2)}
+  .comp-legend span{display:inline-flex;align-items:center;gap:5px}
+  .comp-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  /* ---------- Scenarios ---------- */
+  .scenarios{
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  }
+  .scenario-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;box-shadow:var(--shadow);
+  }
+  .scenario-card h3{margin:0 0 4px;font-size:1.02rem;font-weight:800}
+  .scenario-card .desc{font-size:.85rem;color:var(--ink-2);margin:0 0 16px}
+  .slider-row{display:flex;align-items:center;gap:14px}
+  input[type=range]{
+    flex:1;accent-color:var(--terra);height:26px;cursor:pointer;margin:0;
+  }
+  .slider-val{
+    min-width:76px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:.9rem;
+  }
+  .slider-ends{display:flex;justify-content:space-between;font-size:.72rem;color:var(--ink-2);margin-top:5px}
+  .chip{
+    display:inline-block;margin-top:14px;
+    font-size:.78rem;font-weight:800;letter-spacing:.02em;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:999px;
+    padding:4px 12px;color:var(--olive-deep);
+  }
+  .scenario-note{margin:14px 0 0;font-size:.82rem;color:var(--ink-2);font-style:italic}
+
+  /* ---------- Metodologia ---------- */
+  details{
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);padding:0;
+  }
+  summary{
+    cursor:pointer;padding:18px 22px;font-weight:800;font-size:1.02rem;
+    list-style:none;display:flex;align-items:center;gap:10px;user-select:none;
+  }
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸";color:var(--terra);transition:transform .15s;font-size:.9rem}
+  details[open] summary::before{transform:rotate(90deg)}
+  .details-body{padding:0 22px 22px;font-size:.92rem;color:var(--ink-2)}
+  .details-body h4{color:var(--ink);margin:18px 0 6px;font-size:.9rem;text-transform:uppercase;letter-spacing:.04em}
+  .details-body ul{margin:6px 0;padding-left:20px}
+  .details-body li{margin:3px 0}
+  .tag-real{color:var(--olive);font-weight:800}
+  .tag-ilust{color:var(--terra);font-weight:800}
+
+  footer{
+    margin-top:56px;padding-top:22px;border-top:1px solid var(--line);
+    font-size:.8rem;color:var(--ink-2);
+    display:flex;flex-wrap:wrap;gap:6px 18px;
+  }
+
+  .data-missing{
+    margin-top:30px;padding:16px 20px;border:1px dashed var(--line);border-radius:12px;
+    color:var(--ink-2);background:var(--surface);font-size:.9rem;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .scenarios{grid-template-columns:1fr}
+  }
+  @media (max-width:520px){
+    .kpis{grid-template-columns:1fr}
+    header{padding-top:38px}
+    .wrap{padding:0 14px 56px}
+  }
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1 class="wordmark">Sazô<span class="dot">.</span></h1>
+    <p class="kicker">Análise de mercado geográfico — onde crescer na Zona Sul</p>
+    <div class="meta-row">
+      <span class="meta-date">Análise de Julho de 2026</span>
+      <span class="badge">Dados de zonas ilustrativos</span>
+    </div>
+    <div class="thesis">
+      <strong>A tese:</strong> o gargalo da Sazô hoje é <strong>capacidade e cobertura, não demanda</strong> —
+      <strong id="thesis-pct">68%</strong> da área alcançável de bike em 25 minutos ainda não é atendida.
+    </div>
+  </header>
+
+  <div id="data-missing" class="data-missing" hidden>
+    Os dados ainda não foram injetados neste template. Rode <code>build.py</code> para gerar a versão final do dashboard.
+  </div>
+
+  <section aria-label="Indicadores principais">
+    <div class="kpis">
+      <div class="kpi">
+        <span class="label">Capacidade ociosa</span>
+        <span class="value" id="kpi-ociosa">—</span>
+        <span class="sub" id="kpi-ociosa-sub">refeições/semana paradas</span>
+      </div>
+      <div class="kpi">
+        <span class="label">Alcance de bike · 25 min</span>
+        <span class="value" id="kpi-alcance">—</span>
+        <span class="sub">área real de entrega (isócrona ORS)</span>
+      </div>
+      <div class="kpi hero">
+        <span class="label">Área alcançável não atendida</span>
+        <span class="value" id="kpi-naoatendida">—</span>
+        <span class="sub">dá para crescer sem motor nem frota</span>
+      </div>
+      <div class="kpi">
+        <span class="label">Receita potencial · top 5 zonas</span>
+        <span class="value" id="kpi-receita">—</span>
+        <span class="sub" id="kpi-receita-sub">com captura de —</span>
+        <span class="live-tag">ao vivo · slider de captura</span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Mapa">
+    <h2>O mapa: onde a Sazô chega — e onde ainda não está</h2>
+    <p class="section-sub">Isócronas reais de bike e carro a partir da cozinha em Botafogo, sobre as 15 zonas candidatas.</p>
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="map-panel layers-panel" id="layers-panel" hidden>
+        <div class="panel-title">Camadas</div>
+        <label><input type="checkbox" data-layer="zonas" checked><span class="swatch block" style="background:var(--chorop-4)"></span>Zonas (score)</label>
+        <label><input type="checkbox" data-layer="atendido" checked><span class="swatch dashed" style="border-top-color:var(--brown)"></span>Atendido hoje</label>
+        <label><input type="checkbox" data-layer="bike-15" checked><span class="swatch" style="border-top-color:#c2552b"></span>Bike 15 min</label>
+        <label><input type="checkbox" data-layer="bike-25" checked><span class="swatch" style="border-top-color:#e08b5e"></span>Bike 25 min</label>
+        <label><input type="checkbox" data-layer="carro-20"><span class="swatch" style="border-top-color:#6b7f3f"></span>Carro 20 min</label>
+        <label><input type="checkbox" data-layer="carro-35"><span class="swatch" style="border-top-color:#9aab6b"></span>Carro 35 min</label>
+      </div>
+      <div class="map-panel legend-panel" id="legend-panel" hidden>
+        <div class="panel-title">Score da zona</div>
+        <div class="legend-row"><span class="box" style="background:var(--chorop-1)"></span>&lt; 60</div>
+        <div class="legend-row"><span class="box" style="background:var(--chorop-2)"></span>60–69</div>
+        <div class="legend-row"><span class="box" style="background:var(--chorop-3)"></span>70–79</div>
+        <div class="legend-row"><span class="box" style="background:var(--chorop-4)"></span>80–89</div>
+        <div class="legend-row"><span class="box" style="background:var(--chorop-5)"></span>90+</div>
+        <div class="legend-sep"></div>
+        <div class="legend-row"><span class="ln" style="border-top-color:#c2552b"></span>Bike (15/25 min)</div>
+        <div class="legend-row"><span class="ln" style="border-top-color:#6b7f3f"></span>Carro (20/35 min)</div>
+        <div class="legend-row"><span class="ln dashed" style="border-top-color:var(--brown)"></span>Atendido hoje</div>
+      </div>
+    </div>
+    <p class="map-caption">
+      Repare no contraste: o contorno tracejado é onde a Sazô entrega <em>hoje</em>; o anel de bike de 25 min é onde ela
+      <em>já consegue chegar</em> sem mudar nada na operação.
+    </p>
+  </section>
+
+  <section aria-label="Ranking de zonas">
+    <h2>Ranking das 15 zonas candidatas</h2>
+    <p class="section-sub">Clique em uma coluna para ordenar; clique em uma linha para ver a zona no mapa.</p>
+    <div class="table-scroll">
+      <table id="ranking-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="sortable" data-key="nome">Zona<span class="arrow"></span></th>
+            <th class="sortable" data-key="score">Score<span class="arrow"></span></th>
+            <th>Componentes</th>
+            <th class="sortable" data-key="dom" style="text-align:right">Domicílios<span class="arrow"></span></th>
+            <th class="sortable" data-key="conc" style="text-align:right">Concorrentes<span class="arrow"></span></th>
+            <th class="sortable" data-key="receita" style="text-align:right">Receita potencial/mês<span class="arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="ranking-body"></tbody>
+      </table>
+    </div>
+    <div class="comp-legend">
+      <span><i style="background:#c2552b"></i>Demanda</span>
+      <span><i style="background:#d9a441"></i>Acesso</span>
+      <span><i style="background:#6b7f3f"></i>Afinidade</span>
+      <span><i style="background:#7a5c49"></i>Baixa concorrência</span>
+    </div>
+  </section>
+
+  <section aria-label="Painel de cenários">
+    <h2>Painel de cenários</h2>
+    <p class="section-sub">Teste as duas premissas mais questionáveis da análise — em tempo real.</p>
+    <div class="scenarios">
+      <div class="scenario-card">
+        <h3>Taxa de captura de mercado</h3>
+        <p class="desc">Que fração dos domicílios que gastam com comida fora a Sazô converte em clientes?</p>
+        <div class="slider-row">
+          <input type="range" id="captura-slider" min="0.5" max="3.0" step="0.1" value="1.0"
+                 aria-label="Taxa de captura de mercado, de 0,5% a 3%">
+          <span class="slider-val" id="captura-val">1,0%</span>
+        </div>
+        <div class="slider-ends"><span>0,5% conservador</span><span>3,0% otimista</span></div>
+        <p class="scenario-note">Mexer no slider muda a <strong>magnitude</strong> da receita, não o <strong>ranking</strong> das zonas.</p>
+      </div>
+      <div class="scenario-card">
+        <h3>Peso: demanda ↔ proximidade</h3>
+        <p class="desc">E se a análise valorizasse mais a demanda bruta — ou a proximidade da cozinha?</p>
+        <div class="slider-row">
+          <input type="range" id="peso-slider" min="0" max="100" step="1" value="50"
+                 aria-label="Peso entre demanda e proximidade">
+          <span class="slider-val" id="peso-val">Equilibrado</span>
+        </div>
+        <div class="slider-ends"><span>← Demanda</span><span>Proximidade →</span></div>
+        <span class="chip" id="top5-chip">Top 5 estável: 5/5</span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Metodologia">
+    <h2>Metodologia e premissas</h2>
+    <details>
+      <summary>O que é real, o que é ilustrativo, e o que assumimos</summary>
+      <div class="details-body">
+        <h4>O que é <span class="tag-real">real</span></h4>
+        <ul>
+          <li>As <strong>isócronas</strong> (áreas alcançáveis por tempo) vêm da API do <strong>OpenRouteService</strong>, calculadas sobre a malha viária real do Rio, com os perfis <code>cycling-regular</code> (bike, 15 e 25 min) e <code>driving-car</code> (carro, 20 e 35 min), a partir da cozinha em Botafogo.</li>
+          <li>O mapa-base e a geografia são do OpenStreetMap, via CARTO.</li>
+        </ul>
+        <h4>O que é <span class="tag-ilust">ilustrativo</span> (por enquanto)</h4>
+        <ul>
+          <li>Os <strong>scores, domicílios e contagens de concorrentes das 15 zonas</strong> são estimativas ilustrativas. Elas serão substituídas quando o pipeline com a malha censitária do <strong>IBGE</strong> rodar — a estrutura da análise não muda, só os números.</li>
+        </ul>
+        <h4>Premissas assumidas</h4>
+        <ul>
+          <li>Capacidade da cozinha: <span id="met-capacidade">—</span> refeições/semana; produção atual: <span id="met-producao">—</span>; ociosidade: <span id="met-ociosa">—</span>.</li>
+          <li>Gasto médio com comida fora de casa: <span id="met-gasto">—</span> por domicílio/semana; mês com <span id="met-semanas">—</span> semanas.</li>
+          <li>Taxa de captura base: <span id="met-captura">—</span> dos domicílios endereçáveis (ajustável no painel de cenários).</li>
+          <li>Receita potencial de uma zona = domicílios endereçáveis × captura × gasto semanal × semanas do mês.</li>
+        </ul>
+        <h4>O que esta análise não cobre</h4>
+        <ul>
+          <li>Custo de entrega por zona, tempo de rota real por pedido, sazonalidade e canibalização entre zonas vizinhas.</li>
+          <li>Concorrência qualitativa (preço, posicionamento) — só a contagem de concorrentes diretos.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    <span>Rotas e isócronas © OpenRouteService</span>
+    <span>Mapa © OpenStreetMap contributors © CARTO</span>
+    <span>Malha censitária: IBGE (pendente)</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ dados ============ */
+  var DATA = window.SAZO_DATA;
+  if (!DATA || !DATA.premissas || !DATA.zonas) {
+    document.getElementById('data-missing').hidden = false;
+    var mapEl0 = document.getElementById('map');
+    mapEl0.innerHTML = '<div class="map-fallback">Sem dados para desenhar o mapa — rode build.py.</div>';
+    return;
+  }
+
+  var P = DATA.premissas;
+  var ZONAS = DATA.zonas.slice();
+
+  /* ============ estado ============ */
+  var state = {
+    captura: (P.captura_base || 0.01) * 100, // em %
+    peso: 50,                                 // 0=demanda, 50=equilíbrio, 100=proximidade
+    sortKey: 'score',
+    sortDir: -1                               // -1 desc, 1 asc
+  };
+
+  /* ============ formatação pt-BR ============ */
+  var fmtBRL0 = new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+  var fmtInt  = new Intl.NumberFormat('pt-BR');
+  function fmtPct1(v){ return v.toFixed(1).replace('.', ',') + '%'; }
+
+  /* ============ cálculos ============ */
+  function receita(z){
+    return z.mercado * (state.captura/100) * P.gasto_fora * P.semanas_mes;
+  }
+
+  // proximidade: distância haversine da cozinha, normalizada em score 0–100
+  function haversineKm(a, b){
+    var R = 6371, d2r = Math.PI/180;
+    var dLat = (b[0]-a[0])*d2r, dLng = (b[1]-a[1])*d2r;
+    var s = Math.sin(dLat/2)*Math.sin(dLat/2) +
+            Math.cos(a[0]*d2r)*Math.cos(b[0]*d2r)*Math.sin(dLng/2)*Math.sin(dLng/2);
+    return 2*R*Math.asin(Math.sqrt(s));
+  }
+  var maxDist = 0.001;
+  ZONAS.forEach(function(z){
+    z._dist = haversineKm(P.cozinha, z.latlng);
+    if (z._dist > maxDist) maxDist = z._dist;
+  });
+  ZONAS.forEach(function(z){
+    z._proxScore = Math.round(100 * (1 - z._dist / maxDist));
+    z._demScore = (z.comp && z.comp.length) ? z.comp[0] : z.score;
+  });
+
+  // score ajustado: no ponto médio do slider é EXATAMENTE o score base
+  function adjScore(z){
+    var t = (state.peso - 50) / 50; // -1..+1
+    if (t === 0) return z.score;
+    var w = Math.abs(t);
+    var pull = t < 0 ? z._demScore : z._proxScore;
+    return (1 - w) * z.score + w * pull;
+  }
+
+  function rankedZonas(){
+    var arr = ZONAS.slice();
+    arr.forEach(function(z){ z._adj = adjScore(z); z._receita = receita(z); });
+    arr.sort(function(a,b){ return b._adj - a._adj; });
+    arr.forEach(function(z,i){ z._rank = i+1; });
+    return arr;
+  }
+
+  var baseTop5 = ZONAS.slice().sort(function(a,b){ return b.score - a.score; })
+                      .slice(0,5).map(function(z){ return z.nome; });
+
+  /* ============ cores ============ */
+  function scoreColor(s){
+    var css = getComputedStyle(document.documentElement);
+    var key = s >= 90 ? '--chorop-5' : s >= 80 ? '--chorop-4' : s >= 70 ? '--chorop-3' : s >= 60 ? '--chorop-2' : '--chorop-1';
+    return css.getPropertyValue(key).trim();
+  }
+  function scoreTextColor(s){ return s >= 70 ? '#fff' : 'var(--ink)'; }
+  var COMP_COLORS = ['#c2552b', '#d9a441', '#6b7f3f', '#7a5c49'];
+  var COMP_NAMES = ['Demanda', 'Acesso', 'Afinidade', 'Baixa concorrência'];
+
+  function escHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  /* ============ KPIs ============ */
+  var pctOciosa = Math.round(100 * P.ociosa / P.capacidade_semanal);
+  var tetoMes = P.ociosa * P.gasto_fora * P.semanas_mes;
+  document.getElementById('kpi-ociosa').textContent = '~' + fmtInt.format(P.ociosa) + '/sem';
+  document.getElementById('kpi-ociosa-sub').textContent =
+    pctOciosa + '% da capacidade parada · teto de ' + fmtBRL0.format(tetoMes) + '/mês';
+  document.getElementById('kpi-alcance').textContent = fmtInt.format(P.alcance_bike_km2) + ' km²';
+  document.getElementById('kpi-naoatendida').textContent = P.area_nao_atendida_pct + '%';
+  document.getElementById('thesis-pct').textContent = P.area_nao_atendida_pct + '%';
+
+  function updateKpiReceita(ranked){
+    var top5 = ranked.slice(0,5);
+    var total = top5.reduce(function(acc,z){ return acc + z._receita; }, 0);
+    document.getElementById('kpi-receita').textContent = fmtBRL0.format(total);
+    document.getElementById('kpi-receita-sub').textContent = 'com captura de ' + fmtPct1(state.captura);
+  }
+
+  /* metodologia dinâmica */
+  document.getElementById('met-capacidade').textContent = fmtInt.format(P.capacidade_semanal);
+  document.getElementById('met-producao').textContent = fmtInt.format(P.producao_atual);
+  document.getElementById('met-ociosa').textContent = fmtInt.format(P.ociosa) + ' (' + pctOciosa + '%)';
+  document.getElementById('met-gasto').textContent = fmtBRL0.format(P.gasto_fora);
+  document.getElementById('met-semanas').textContent = String(P.semanas_mes).replace('.', ',');
+  document.getElementById('met-captura').textContent = fmtPct1((P.captura_base || 0.01) * 100);
+
+  /* ============ mapa (Leaflet) ============ */
+  var map = null;
+  var zoneMarkers = {};   // nome -> circleMarker
+  var mapLayers = {};     // chave -> layer
+  var openZone = null;    // zona com popup aberto
+
+  function popupHtml(z){
+    return '<div class="popup-title">' + escHtml(z.nome) + '</div>' +
+      '<div class="popup-score">Score ' + Math.round(z.score) + ' / 100</div>' +
+      '<div class="popup-grid">' +
+      '<b>' + fmtInt.format(z.dom) + '</b> domicílios · <b>' + fmtInt.format(z.conc) + '</b> concorrentes<br>' +
+      'Receita potencial: <b>' + fmtBRL0.format(receita(z)) + '/mês</b><br>' +
+      '<span style="font-size:.75rem">com captura de ' + fmtPct1(state.captura) + '</span>' +
+      '</div>';
+  }
+
+  function buildMap(){
+    if (typeof L === 'undefined'){
+      document.getElementById('map').innerHTML =
+        '<div class="map-fallback">O mapa precisa de conexão para carregar os blocos e a biblioteca Leaflet.<br>' +
+        'Os indicadores, o ranking e os cenários abaixo continuam funcionando normalmente.</div>';
+      return;
+    }
+
+    map = L.map('map', { scrollWheelZoom: false, zoomControl: true });
+
+    /* blocos base — Positron claro / dark_all no esquema escuro */
+    var darkMq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    function tileUrl(){
+      var variant = (darkMq && darkMq.matches) ? 'dark_all' : 'light_all';
+      return 'https://{s}.basemap.cartocdn.com/' + variant + '/{z}/{x}/{y}{r}.png';
+    }
+    var tiles = L.tileLayer(tileUrl(), {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+    if (darkMq && darkMq.addEventListener){
+      darkMq.addEventListener('change', function(){ tiles.setUrl(tileUrl()); });
+    }
+
+    /* scroll do mouse só depois de clicar no mapa (a página continua rolável) */
+    var mapEl = document.getElementById('map');
+    mapEl.addEventListener('click', function(){ map.scrollWheelZoom.enable(); });
+    mapEl.addEventListener('mouseleave', function(){ map.scrollWheelZoom.disable(); });
+
+    /* ---- isócronas (GeoJSON real do ORS; Leaflet lê [lng,lat] nativamente) ---- */
+    var isoStyles = {
+      'bike-15':  { color:'#c2552b', weight:2.6, dashArray:null, fillColor:'#c2552b', fillOpacity:0.10, opacity:0.95 },
+      'bike-25':  { color:'#e08b5e', weight:2.2, dashArray:null, fillColor:'#e08b5e', fillOpacity:0.06, opacity:0.75 },
+      'carro-20': { color:'#6b7f3f', weight:2.4, dashArray:null, fillColor:'#6b7f3f', fillOpacity:0.07, opacity:0.9 },
+      'carro-35': { color:'#9aab6b', weight:2.0, dashArray:null, fillColor:'#9aab6b', fillOpacity:0.04, opacity:0.7 }
+    };
+    var unionBounds = null;
+    if (DATA.isocronas && DATA.isocronas.features){
+      DATA.isocronas.features.forEach(function(feat){
+        var key = feat.properties.mode + '-' + feat.properties.minutes;
+        var style = isoStyles[key] || { color:'#c2552b', weight:2 };
+        var layer = L.geoJSON(feat, {
+          style: function(){ return style; }
+        });
+        layer.bindTooltip(escHtml(feat.properties.label || key), {sticky:true});
+        mapLayers[key] = layer;
+        var b = layer.getBounds();
+        unionBounds = unionBounds ? unionBounds.extend(b) : b;
+      });
+    }
+
+    /* ---- zonas: circleMarkers coropléticos ---- */
+    var maxMercado = ZONAS.reduce(function(m,z){ return Math.max(m, z.mercado); }, 1);
+    var zonasGroup = L.layerGroup();
+    ZONAS.forEach(function(z){
+      var r = 7 + 13 * Math.sqrt(z.mercado / maxMercado);
+      var m = L.circleMarker(z.latlng, {
+        radius: r,
+        color: '#ffffff',
+        weight: 1.5,
+        opacity: 0.9,
+        fillColor: scoreColor(z.score),
+        fillOpacity: 0.82
+      });
+      m.bindTooltip(escHtml(z.nome) + ' · score ' + Math.round(z.score), {direction:'top', offset:[0,-6]});
+      m.bindPopup(function(){ return popupHtml(z); });
+      m.on('popupopen', function(){ openZone = z; });
+      m.on('popupclose', function(){ if (openZone === z) openZone = null; });
+      m.addTo(zonasGroup);
+      zoneMarkers[z.nome] = m;
+    });
+    mapLayers['zonas'] = zonasGroup;
+
+    /* ---- contorno "atendido hoje": casco pequeno em volta das 3 zonas atuais ---- */
+    var atendidoPts = ZONAS
+      .filter(function(z){ return (P.atendido_hoje || []).indexOf(z.nome) !== -1; })
+      .map(function(z){ return z.latlng; });
+    if (atendidoPts.length >= 3){
+      var cLat = 0, cLng = 0;
+      atendidoPts.forEach(function(p){ cLat += p[0]; cLng += p[1]; });
+      cLat /= atendidoPts.length; cLng /= atendidoPts.length;
+      // ordena por ângulo e adiciona pontos intermediários — hexágono suave
+      var sorted = atendidoPts.slice().sort(function(a,b){
+        return Math.atan2(a[0]-cLat, a[1]-cLng) - Math.atan2(b[0]-cLat, b[1]-cLng);
+      });
+      var PAD = 1.45; // afasta os vértices do centróide
+      var hull = [];
+      for (var i = 0; i < sorted.length; i++){
+        var p1 = sorted[i], p2 = sorted[(i+1) % sorted.length];
+        hull.push([cLat + (p1[0]-cLat)*PAD, cLng + (p1[1]-cLng)*PAD]);
+        var mLat = (p1[0]+p2[0])/2, mLng = (p1[1]+p2[1])/2;
+        hull.push([cLat + (mLat-cLat)*(PAD*1.12), cLng + (mLng-cLng)*(PAD*1.12)]);
+      }
+      var atendidoPoly = L.polygon(hull, {
+        color: '#7a5c49',
+        weight: 3,
+        dashArray: '8 7',
+        fill: false,
+        opacity: 0.95
+      });
+      atendidoPoly.bindTooltip('Atendido hoje: ' + (P.atendido_hoje || []).join(', '), {sticky:true});
+      mapLayers['atendido'] = L.layerGroup([atendidoPoly]);
+    }
+
+    /* ---- marcador da cozinha ---- */
+    var flame = L.divIcon({
+      className: '',
+      html: '<div class="flame-pin">🔥</div>',
+      iconSize: [30, 30],
+      iconAnchor: [15, 28],
+      popupAnchor: [0, -26]
+    });
+    L.marker(P.cozinha, { icon: flame, zIndexOffset: 1000 })
+      .addTo(map)
+      .bindPopup('<b>Cozinha Sazô · Botafogo</b>');
+
+    /* ---- camadas iniciais (bike ON, carro OFF, zonas ON, atendido ON) ---- */
+    ['zonas','atendido','bike-15','bike-25'].forEach(function(k){
+      if (mapLayers[k]) mapLayers[k].addTo(map);
+    });
+
+    /* ---- painel de camadas customizado ---- */
+    var panel = document.getElementById('layers-panel');
+    panel.hidden = false;
+    panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+      var key = cb.getAttribute('data-layer');
+      cb.checked = !!(mapLayers[key] && map.hasLayer(mapLayers[key]));
+      cb.addEventListener('change', function(){
+        var layer = mapLayers[key];
+        if (!layer) return;
+        if (cb.checked) layer.addTo(map);
+        else map.removeLayer(layer);
+      });
+    });
+    document.getElementById('legend-panel').hidden = false;
+
+    /* ---- enquadra a união das isócronas ---- */
+    function frame(){
+      if (unionBounds && unionBounds.isValid()){
+        map.fitBounds(unionBounds, { padding: [24, 24] });
+      } else {
+        map.setView(P.cozinha, 13);
+      }
+    }
+    frame();
+    // se o container ainda não tinha tamanho (aba oculta etc.), reenquadra quando ganhar
+    if (typeof ResizeObserver !== 'undefined'){
+      var framed = mapEl.clientWidth > 0 && mapEl.clientHeight > 0;
+      var ro = new ResizeObserver(function(){
+        if (!framed && mapEl.clientWidth > 0 && mapEl.clientHeight > 0){
+          framed = true;
+          map.invalidateSize();
+          frame();
+          ro.disconnect();
+        }
+      });
+      ro.observe(mapEl);
+    }
+  }
+
+  /* ============ ranking (tabela) ============ */
+  var tbody = document.getElementById('ranking-body');
+  var pesoAtivo = false;
+
+  function compBarsHtml(z){
+    var html = '<div class="comp-bars">';
+    for (var i = 0; i < 4; i++){
+      var v = Math.max(0, Math.min(100, (z.comp && z.comp[i]) || 0));
+      html += '<div class="comp-bar" title="' + COMP_NAMES[i] + ': ' + Math.round(v) + '">' +
+        '<span class="tag">' + COMP_NAMES[i].charAt(0) + '</span>' +
+        '<span class="track"><span class="fill" style="width:' + v + '%;background:' + COMP_COLORS[i] + '"></span></span>' +
+        '</div>';
+    }
+    return html + '</div>';
+  }
+
+  function renderTable(){
+    var ranked = rankedZonas();
+
+    // ordem de exibição segundo a coluna ativa
+    var rows = ranked.slice();
+    var key = state.sortKey, dir = state.sortDir;
+    rows.sort(function(a,b){
+      var va, vb;
+      switch (key){
+        case 'nome':    va = a.nome.toLowerCase(); vb = b.nome.toLowerCase();
+                        return dir * (va < vb ? -1 : va > vb ? 1 : 0);
+        case 'dom':     va = a.dom; vb = b.dom; break;
+        case 'conc':    va = a.conc; vb = b.conc; break;
+        case 'receita': va = a._receita; vb = b._receita; break;
+        default:        va = a._adj; vb = b._adj;
+      }
+      return dir * (va - vb); // dir 1 = crescente, -1 = decrescente
+    });
+
+    var html = '';
+    rows.forEach(function(z){
+      var showAdj = pesoAtivo && Math.abs(z._adj - z.score) >= 0.5;
+      html += '<tr data-zona="' + escHtml(z.nome) + '">' +
+        '<td class="rank-num">' + z._rank + '</td>' +
+        '<td class="zona-name">' + escHtml(z.nome) + '</td>' +
+        '<td><span class="score-pill" style="background:' + scoreColor(z._adj) + ';color:' + scoreTextColor(z._adj) + '">' +
+            Math.round(z._adj) + '</span>' +
+            (showAdj ? '<span class="score-delta">base ' + Math.round(z.score) + '</span>' : '') +
+        '</td>' +
+        '<td>' + compBarsHtml(z) + '</td>' +
+        '<td class="num">' + fmtInt.format(z.dom) + '</td>' +
+        '<td class="num">' + fmtInt.format(z.conc) + '</td>' +
+        '<td class="num receita-cell">' + fmtBRL0.format(z._receita) + '</td>' +
+        '</tr>';
+    });
+    tbody.innerHTML = html;
+
+    // setas de ordenação
+    document.querySelectorAll('#ranking-table thead th.sortable').forEach(function(th){
+      var arrow = th.querySelector('.arrow');
+      arrow.textContent = (th.getAttribute('data-key') === key) ? (dir === -1 ? '▼' : '▲') : '';
+    });
+
+    updateKpiReceita(ranked);
+
+    // chip "Top 5 estável"
+    var adjTop5 = ranked.slice(0,5).map(function(z){ return z.nome; });
+    var stable = adjTop5.filter(function(n){ return baseTop5.indexOf(n) !== -1; }).length;
+    document.getElementById('top5-chip').textContent = 'Top 5 estável: ' + stable + '/5';
+
+    // popup aberto no mapa acompanha o slider
+    if (openZone && map){
+      var mk = zoneMarkers[openZone.nome];
+      if (mk && mk.getPopup() && mk.isPopupOpen()) mk.getPopup().setContent(popupHtml(openZone));
+    }
+  }
+
+  // ordenar clicando no cabeçalho
+  document.querySelectorAll('#ranking-table thead th.sortable').forEach(function(th){
+    th.addEventListener('click', function(){
+      var key = th.getAttribute('data-key');
+      if (state.sortKey === key) state.sortDir = -state.sortDir;
+      else { state.sortKey = key; state.sortDir = key === 'nome' ? 1 : -1; }
+      renderTable();
+    });
+  });
+
+  // clique na linha: voa até a zona e abre o popup
+  tbody.addEventListener('click', function(ev){
+    var tr = ev.target.closest('tr');
+    if (!tr || !map) return;
+    var nome = tr.getAttribute('data-zona');
+    var z = ZONAS.find(function(x){ return x.nome === nome; });
+    var mk = zoneMarkers[nome];
+    if (!z || !mk) return;
+    if (!map.hasLayer(mapLayers['zonas'])){
+      mapLayers['zonas'].addTo(map);
+      var cb = document.querySelector('#layers-panel input[data-layer="zonas"]');
+      if (cb) cb.checked = true;
+    }
+    map.flyTo(z.latlng, Math.max(map.getZoom(), 14), { duration: 0.6 });
+    mk.openPopup();
+    document.querySelector('.map-wrap').scrollIntoView({ behavior:'smooth', block:'center' });
+  });
+
+  /* ============ sliders ============ */
+  var capturaSlider = document.getElementById('captura-slider');
+  var pesoSlider = document.getElementById('peso-slider');
+  capturaSlider.value = String(state.captura);
+
+  capturaSlider.addEventListener('input', function(){
+    state.captura = parseFloat(capturaSlider.value);
+    document.getElementById('captura-val').textContent = fmtPct1(state.captura);
+    renderTable();
+  });
+
+  pesoSlider.addEventListener('input', function(){
+    state.peso = parseInt(pesoSlider.value, 10);
+    pesoAtivo = state.peso !== 50;
+    var lbl;
+    if (state.peso === 50) lbl = 'Equilibrado';
+    else if (state.peso < 50) lbl = 'Demanda +' + (50 - state.peso) * 2 + '%';
+    else lbl = 'Proximidade +' + (state.peso - 50) * 2 + '%';
+    document.getElementById('peso-val').textContent = lbl;
+    renderTable();
+  });
+
+  /* ============ boot ============ */
+  document.getElementById('captura-val').textContent = fmtPct1(state.captura);
+  buildMap();
+  renderTable();
+})();
+</script>
+</body>
+</html>
