@@ -3,3 +3,4 @@ data/raw/
 data/processed/*.geojson
 __pycache__/
 *.pyc
+data/processed/*.json

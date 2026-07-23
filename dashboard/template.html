@@ -312,7 +312,7 @@
     <p class="kicker">Análise de mercado geográfico — onde crescer na Zona Sul</p>
     <div class="meta-row">
       <span class="meta-date">Análise de Julho de 2026</span>
-      <span class="badge">Dados de zonas ilustrativos</span>
+      <span class="badge">Domicílios: IBGE 2022 · scores parciais</span>
     </div>
     <div class="thesis">
       <strong>A tese:</strong> o gargalo da Sazô hoje é <strong>capacidade e cobertura, não demanda</strong> —
@@ -352,7 +352,7 @@
 
   <section aria-label="Mapa">
     <h2>O mapa: onde a Sazô chega — e onde ainda não está</h2>
-    <p class="section-sub">Isócronas reais de bike e carro a partir da cozinha em Botafogo, sobre as 15 zonas candidatas.</p>
+    <p class="section-sub">Isócronas reais de bike e carro a partir da cozinha em Botafogo, sobre os bairros candidatos da Zona Sul.</p>
     <div class="map-wrap">
       <div id="map"></div>
       <div class="map-panel layers-panel" id="layers-panel" hidden>
@@ -384,7 +384,7 @@
   </section>
 
   <section aria-label="Ranking de zonas">
-    <h2>Ranking das 15 zonas candidatas</h2>
+    <h2>Ranking dos bairros candidatos</h2>
     <p class="section-sub">Clique em uma coluna para ordenar; clique em uma linha para ver a zona no mapa.</p>
     <div class="table-scroll">
       <table id="ranking-table">
@@ -447,11 +447,13 @@
         <h4>O que é <span class="tag-real">real</span></h4>
         <ul>
           <li>As <strong>isócronas</strong> (áreas alcançáveis por tempo) vêm da API do <strong>OpenRouteService</strong>, calculadas sobre a malha viária real do Rio, com os perfis <code>cycling-regular</code> (bike, 15 e 25 min) e <code>driving-car</code> (carro, 20 e 35 min), a partir da cozinha em Botafogo.</li>
+          <li>Os <strong>domicílios e a população de cada zona</strong> são do <strong>Censo 2022 do IBGE</strong> (Agregados por Setores Censitários, nível bairro). No município do Rio conferem: <span id="met-censo-dom">—</span> domicílios e <span id="met-censo-pop">—</span> pessoas — os mesmos totais chegando pela via de setores e pela de bairros.</li>
+          <li>A componente <strong>demanda</strong> do score é derivada diretamente desses domicílios ocupados.</li>
           <li>O mapa-base e a geografia são do OpenStreetMap, via CARTO.</li>
         </ul>
         <h4>O que é <span class="tag-ilust">ilustrativo</span> (por enquanto)</h4>
         <ul>
-          <li>Os <strong>scores, domicílios e contagens de concorrentes das 15 zonas</strong> são estimativas ilustrativas. Elas serão substituídas quando o pipeline com a malha censitária do <strong>IBGE</strong> rodar — a estrutura da análise não muda, só os números.</li>
+          <li>As componentes <strong>acesso, afinidade e baixa concorrência</strong> do score — e a <strong>contagem de concorrentes</strong> — ainda são estimativas. Elas serão substituídas quando rodarem o rateio espacial das isócronas (Fase 4) e a contagem real de POIs (Fase 3). A estrutura não muda, só esses números.</li>
         </ul>
         <h4>Premissas assumidas</h4>
         <ul>
@@ -472,7 +474,7 @@
   <footer>
     <span>Rotas e isócronas © OpenRouteService</span>
     <span>Mapa © OpenStreetMap contributors © CARTO</span>
-    <span>Malha censitária: IBGE (pendente)</span>
+    <span>Domicílios e população: IBGE — Censo 2022</span>
   </footer>
 
 </div>
@@ -589,6 +591,10 @@
   document.getElementById('met-gasto').textContent = fmtBRL0.format(P.gasto_fora);
   document.getElementById('met-semanas').textContent = String(P.semanas_mes).replace('.', ',');
   document.getElementById('met-captura').textContent = fmtPct1((P.captura_base || 0.01) * 100);
+  if (P.censo) {
+    document.getElementById('met-censo-dom').textContent = fmtInt.format(P.censo.domicilios_municipio);
+    document.getElementById('met-censo-pop').textContent = fmtInt.format(P.censo.pessoas_municipio);
+  }
 
   /* ============ mapa (Leaflet) ============ */
   var map = null;

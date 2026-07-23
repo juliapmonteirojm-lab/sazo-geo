@@ -1,14 +1,24 @@
-"""Fase 6 — injeta os dados (isocronas reais + zonas) no template e gera o
-entregavel dist/sazo_dashboard.html.
+"""Fase 6 — gera dist/sazo_dashboard.html.
 
-Contrato: template.html contem o token literal  /*__DATA__*/  em um <script>.
-Ele e trocado por  window.SAZO_DATA = {...};  com todos os dados inline.
+Junta:
+  - isocronas REAIS (ORS, data/processed/isochrones.geojson)
+  - censo REAL (IBGE, data/processed/censo_rio_bairros.json) -> domicilios/pop
+  - zonas (dashboard/zones.py) -> centroides + componentes ilustrativas
+
+Deriva, de forma transparente (premissas em config.py):
+  - demanda   = domicilios ocupados normalizados (0-100)
+  - score     = media ponderada das 4 componentes (PESOS)
+  - mercado   = dom_ocupados * TAXA_DOM_ALVO * MARMITAS_SEM_POR_DOM
+E marca quais zonas caem dentro da isocrona de bike 25 min (teste de
+centroide — aproximacao; o rateio por area fica para a Fase 4).
+
+Contrato: template.html tem o token  /*__DATA__*/  -> window.SAZO_DATA = {...};
 Nenhuma chave de API entra no HTML.
 
-Uso:
-    python -m dashboard.build
+Uso: python -m dashboard.build
 """
 import json
+import unicodedata
 from pathlib import Path
 
 from pipeline import config
@@ -19,8 +29,82 @@ OUT = Path("dist/sazo_dashboard.html")
 TOKEN = "/*__DATA__*/"
 
 
+def _norm(s: str) -> str:
+    # normaliza nome de bairro p/ join robusto (sem acento, minusculo)
+    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
+    return s.strip().lower()
+
+
+def _point_in_ring(lng: float, lat: float, ring: list) -> bool:
+    inside = False
+    n = len(ring)
+    j = n - 1
+    for i in range(n):
+        xi, yi = ring[i][0], ring[i][1]
+        xj, yj = ring[j][0], ring[j][1]
+        if ((yi > lat) != (yj > lat)) and \
+           (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
+def _in_polygon(lng: float, lat: float, geometry: dict) -> bool:
+    # suporta Polygon e MultiPolygon; considera so o anel externo
+    if geometry["type"] == "Polygon":
+        polys = [geometry["coordinates"]]
+    else:  # MultiPolygon
+        polys = geometry["coordinates"]
+    return any(_point_in_ring(lng, lat, poly[0]) for poly in polys)
+
+
 def build() -> None:
     iso = json.loads(Path(config.ARQ_ISOCRONAS).read_text(encoding="utf-8"))
+    censo = json.loads(Path(config.ARQ_CENSO_BAIRROS).read_text(encoding="utf-8"))
+    por_nome = {_norm(b["nome"]): b for b in censo["bairros"]}
+
+    bike25 = next((f["geometry"] for f in iso["features"]
+                   if f["properties"]["mode"] == "bike"
+                   and f["properties"]["minutes"] == 25), None)
+
+    # 1a passada: anexa censo real e calcula mercado; guarda max p/ normalizar
+    enriquecidas = []
+    faltando = []
+    for z in ZONAS:
+        b = por_nome.get(_norm(z["nome"]))
+        if not b:
+            faltando.append(z["nome"])
+            continue
+        dom = b["domicilios_ocupados"]
+        merc = round(dom * config.TAXA_DOM_ALVO * config.MARMITAS_SEM_POR_DOM)
+        lat, lng = z["latlng"]
+        enriquecidas.append({**z, "dom": dom, "pessoas": b["pessoas"],
+                             "area_km2": b["area_km2"], "mercado": merc,
+                             "no_alcance_bike25": bool(bike25 and _in_polygon(lng, lat, bike25))})
+    if faltando:
+        raise SystemExit(f"ERRO: bairros sem match no censo: {faltando}")
+
+    max_dom = max(z["dom"] for z in enriquecidas)
+    pesos = config.PESOS
+
+    zonas_out = []
+    for z in enriquecidas:
+        demanda = round(100 * z["dom"] / max_dom)
+        acesso, afinidade, baixa_conc = z["comp_extra"]
+        score = round(pesos["demanda"] * demanda + pesos["acesso"] * acesso
+                      + pesos["afinidade"] * afinidade
+                      + pesos["baixa_concorrencia"] * baixa_conc)
+        zonas_out.append({
+            "nome": z["nome"], "latlng": z["latlng"],
+            "score": score, "dom": z["dom"], "pessoas": z["pessoas"],
+            "conc": z["conc"], "mercado": z["mercado"],
+            "no_alcance_bike25": z["no_alcance_bike25"],
+            "comp": [demanda, acesso, afinidade, baixa_conc],  # demanda REAL
+        })
+    zonas_out.sort(key=lambda z: z["score"], reverse=True)
+
+    dom_zonas = sum(z["dom"] for z in zonas_out)
+    dom_bike25 = sum(z["dom"] for z in zonas_out if z["no_alcance_bike25"])
 
     premissas = {
         "cozinha": config.COZINHA_LATLNG,
@@ -33,23 +117,38 @@ def build() -> None:
         "atendido_hoje": ["Botafogo", "Flamengo", "Laranjeiras"],
         "alcance_bike_km2": 14,
         "area_nao_atendida_pct": 68,
+        "pesos": pesos,
+        "taxa_dom_alvo": config.TAXA_DOM_ALVO,
+        "marmitas_sem_por_dom": config.MARMITAS_SEM_POR_DOM,
+        "censo": {
+            "fonte": "IBGE — Censo 2022 (Agregados por Setores Censitários)",
+            "municipio": censo["validacao"]["municipio"],
+            "pessoas_municipio": censo["validacao"]["pessoas_via_setores"],
+            "domicilios_municipio": censo["validacao"]["domicilios_via_setores"],
+            "n_setores": censo["validacao"]["n_setores"],
+            "n_bairros": censo["validacao"]["n_bairros"],
+            "dom_ocupados_zonas": dom_zonas,
+            "dom_ocupados_no_alcance_bike25": dom_bike25,
+        },
     }
 
-    data = {"premissas": premissas, "zonas": ZONAS, "isocronas": iso}
+    data = {"premissas": premissas, "zonas": zonas_out, "isocronas": iso}
     blob = "window.SAZO_DATA = " + json.dumps(data, ensure_ascii=False) + ";"
 
     html = TEMPLATE.read_text(encoding="utf-8")
     if TOKEN not in html:
         raise SystemExit(f"ERRO: token {TOKEN} nao encontrado em {TEMPLATE}.")
     html = html.replace(TOKEN, blob)
-
     assert "ORS_KEY" not in html and "Authorization" not in html, "chave vazou no HTML!"
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(html, encoding="utf-8")
     kb = OUT.stat().st_size / 1024
-    print(f"OK: {OUT} gerado ({kb:.0f} KB) — {len(ZONAS)} zonas, "
+    print(f"OK: {OUT} ({kb:.0f} KB) — {len(zonas_out)} zonas, "
           f"{len(iso['features'])} isocronas.")
+    print(f"   domicilios ocupados (16 zonas): {dom_zonas:,}".replace(",", "."))
+    print(f"   no alcance de bike 25 min:      {dom_bike25:,}".replace(",", "."))
+    print(f"   top 3: " + ", ".join(f"{z['nome']}({z['score']})" for z in zonas_out[:3]))
 
 
 if __name__ == "__main__":
