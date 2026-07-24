@@ -82,6 +82,11 @@ def build() -> None:
     censo = json.loads(Path(config.ARQ_CENSO_BAIRROS).read_text(encoding="utf-8"))
     pois = json.loads(Path(config.ARQ_POIS).read_text(encoding="utf-8"))
     por_nome = {_norm(b["nome"]): b for b in censo["bairros"]}
+    # Fase 4 (opcional): rateio espacial real. Se ausente, acesso e KPIs de area
+    # caem para valores interinos.
+    score_bd = None
+    if Path(config.ARQ_SCORE).exists():
+        score_bd = json.loads(Path(config.ARQ_SCORE).read_text(encoding="utf-8"))
 
     bike25 = next((f["geometry"] for f in iso["features"]
                    if f["properties"]["mode"] == "bike"
@@ -113,9 +118,13 @@ def build() -> None:
     dens_afin = [z["afin_raw"] * 1000 / z["dom"] for z in enriquecidas]
     baixa_conc_s = _minmax(dens_conc, inverso=True)   # menos concorrencia -> maior
     afinidade_s = _minmax(dens_afin)                  # mais ancoras -> maior
-    # acesso INTERIM: proxy por distancia a cozinha (Fase 4 troca por rateio real)
-    dist = [_haversine_km(config.COZINHA_LATLNG, z["latlng"]) for z in enriquecidas]
-    acesso_s = _minmax(dist, inverso=True)            # mais perto -> maior
+    if score_bd:
+        # acesso REAL (Fase 4): fracao da area do bairro dentro do bike 25 min
+        acesso_s = [score_bd["acesso"].get(z["nome"], 0) for z in enriquecidas]
+    else:
+        # acesso INTERIM: proxy por distancia a cozinha
+        dist = [_haversine_km(config.COZINHA_LATLNG, z["latlng"]) for z in enriquecidas]
+        acesso_s = _minmax(dist, inverso=True)        # mais perto -> maior
 
     pesos = config.PESOS
     zonas_out = []
@@ -140,6 +149,19 @@ def build() -> None:
     dom_zonas = sum(z["dom"] for z in zonas_out)
     dom_bike25 = sum(z["dom"] for z in zonas_out if z["no_alcance_bike25"])
 
+    # KPIs de area: reais (Fase 4) se disponiveis, senao interinos.
+    if score_bd:
+        k = score_bd["kpis"]
+        alcance_km2 = k["alcance_bike_km2"]
+        area_nao_atendida = k["area_nao_atendida_pct"]
+        dom_alcance_bike = k["dom_bike25"]
+        dom_nao_atendida = k["dom_nao_atendida"]
+        kpis_reais = True
+    else:
+        alcance_km2, area_nao_atendida = 14, 68
+        dom_alcance_bike, dom_nao_atendida = dom_bike25, None
+        kpis_reais = False
+
     premissas = {
         "cozinha": config.COZINHA_LATLNG,
         "capacidade_semanal": config.CAPACIDADE_SEMANAL,
@@ -149,8 +171,11 @@ def build() -> None:
         "semanas_mes": config.SEMANAS_MES,
         "captura_base": config.CAPTURA_BASE,
         "atendido_hoje": ["Botafogo", "Flamengo", "Laranjeiras"],
-        "alcance_bike_km2": 14,
-        "area_nao_atendida_pct": 68,
+        "alcance_bike_km2": alcance_km2,
+        "area_nao_atendida_pct": area_nao_atendida,
+        "kpis_reais": kpis_reais,
+        "dom_alcance_bike25": dom_alcance_bike,
+        "dom_nao_atendida_bike25": dom_nao_atendida,
         "pesos": pesos,
         "taxa_dom_alvo": config.TAXA_DOM_ALVO,
         "marmitas_sem_por_dom": config.MARMITAS_SEM_POR_DOM,

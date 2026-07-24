@@ -92,13 +92,21 @@ def carregar_bairros(nomes=None, mun=None):
     return out
 
 
+def _int(v) -> int:
+    try:
+        return int(round(float(str(v).replace(",", ".")))) if v not in (None, "", ".") else 0
+    except ValueError:
+        return 0
+
+
 def carregar_setores(mun=None, bbox=None):
-    """Gera (CD_SETOR, domicilios, geometry WGS84) por setor do municipio.
-    bbox opcional (minlng, minlat, maxlng, maxlat) recorta por bounding box do
-    setor para evitar carregar geometria irrelevante."""
+    """Gera (CD_SETOR, dom_ocupados, geometry WGS84) por setor do municipio.
+    dom_ocupados = v0007 (domicilios particulares permanentes ocupados), a
+    mesma metrica de mercado usada nas zonas. bbox opcional (minlng, minlat,
+    maxlng, maxlat) recorta por bounding box do setor."""
     mun = mun or config.MUNICIPIO_RIO
     shp = malha_setores_shp()
-    r = shapefile.Reader(str(shp), encoding="latin-1")
+    r = _ler_shp(shp)
     for sr in r.iterShapeRecords():
         rec = sr.record.as_dict()
         if str(rec.get("CD_MUN")) != mun:
@@ -107,10 +115,5 @@ def carregar_setores(mun=None, bbox=None):
             bb = sr.shape.bbox  # (minx,miny,maxx,maxy) em WGS84
             if bb[2] < bbox[0] or bb[0] > bbox[2] or bb[3] < bbox[1] or bb[1] > bbox[3]:
                 continue
-        dom = rec.get("v0002")
-        try:
-            dom = int(round(float(str(dom).replace(",", ".")))) if dom not in (None, "", ".") else 0
-        except ValueError:
-            dom = 0
         g = shape(sr.shape.__geo_interface__).buffer(0)
-        yield rec.get("CD_SETOR"), dom, g
+        yield rec.get("CD_SETOR"), _int(rec.get("v0007")), g

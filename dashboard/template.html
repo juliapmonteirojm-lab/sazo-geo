@@ -312,11 +312,11 @@
     <p class="kicker">Análise de mercado geográfico — onde crescer na Zona Sul</p>
     <div class="meta-row">
       <span class="meta-date">Análise de Julho de 2026</span>
-      <span class="badge">IBGE 2022 + OSM · acesso interino</span>
+      <span class="badge">Censo IBGE · OSM · isócronas ORS</span>
     </div>
     <div class="thesis">
       <strong>A tese:</strong> o gargalo da Sazô hoje é <strong>capacidade e cobertura, não demanda</strong> —
-      <strong id="thesis-pct">68%</strong> da área alcançável de bike em 25 minutos ainda não é atendida.
+      <strong id="thesis-pct">82%</strong> da área alcançável de bike em 25 minutos ainda não é atendida.
     </div>
   </header>
 
@@ -442,7 +442,7 @@
   <section aria-label="Metodologia">
     <h2>Metodologia e premissas</h2>
     <details>
-      <summary>O que é real, o que é ilustrativo, e o que assumimos</summary>
+      <summary>De onde vem cada número (dados reais) e o que assumimos</summary>
       <div class="details-body">
         <h4>O que é <span class="tag-real">real</span></h4>
         <ul>
@@ -450,13 +450,11 @@
           <li>Os <strong>domicílios e a população de cada zona</strong> são do <strong>Censo 2022 do IBGE</strong> (Agregados por Setores Censitários, nível bairro). No município do Rio conferem: <span id="met-censo-dom">—</span> domicílios e <span id="met-censo-pop">—</span> pessoas — os mesmos totais chegando pela via de setores e pela de bairros.</li>
           <li>A componente <strong>demanda</strong> do score é derivada diretamente desses domicílios ocupados.</li>
           <li>A <strong>contagem de concorrentes</strong> (restaurantes e lanchonetes) e as <strong>âncoras de afinidade</strong> (academias, estúdios, lojas de produto natural e casas de suco) vêm do <strong>OpenStreetMap</strong>, atribuídas a cada bairro pelo polígono que as contém. Alimentam as componentes <strong>afinidade</strong> e <strong>baixa concorrência</strong> do score.</li>
+          <li>A componente <strong>acesso</strong> e os KPIs de área saem do <strong>rateio espacial</strong> das isócronas sobre os <span id="met-setores">—</span> setores censitários ao alcance: reprojetados para CRS métrico (EPSG:31983), cada setor entra na conta pela fração da sua área dentro da isócrona — rateio por área, não por centroide, que distorceria justamente as bordas. Daí vêm os <strong><span id="met-alcance-km2">—</span> km² alcançáveis de bike</strong> e os <strong><span id="met-dom-alcance">—</span> domicílios</strong> ao alcance, dos quais <span id="met-dom-naoatend">—</span> ainda não são atendidos.</li>
           <li>O mapa-base e a geografia são do OpenStreetMap, via CARTO.</li>
         </ul>
-        <h4>O que é <span class="tag-ilust">ilustrativo</span> (por enquanto)</h4>
-        <ul>
-          <li>Só a componente <strong>acesso</strong> ainda é uma estimativa (proxy pela distância à cozinha). Ela será substituída pelo rateio espacial real das isócronas (Fase 4) — a estrutura não muda, só esse número.</li>
-        </ul>
-        <h4>Premissas assumidas</h4>
+        <h4>Premissas de negócio (assumidas)</h4>
+        <p class="met-note">As únicas premissas não medidas — números do dia a dia da cozinha, não dados públicos.</p>
         <ul>
           <li>Capacidade da cozinha: <span id="met-capacidade">—</span> refeições/semana; produção atual: <span id="met-producao">—</span>; ociosidade: <span id="met-ociosa">—</span>.</li>
           <li>Gasto médio com comida fora de casa: <span id="met-gasto">—</span> por domicílio/semana; mês com <span id="met-semanas">—</span> semanas.</li>
@@ -595,7 +593,13 @@
   if (P.censo) {
     document.getElementById('met-censo-dom').textContent = fmtInt.format(P.censo.domicilios_municipio);
     document.getElementById('met-censo-pop').textContent = fmtInt.format(P.censo.pessoas_municipio);
+    document.getElementById('met-setores').textContent = fmtInt.format(P.censo.n_setores);
   }
+  document.getElementById('met-alcance-km2').textContent = P.alcance_bike_km2;
+  if (P.dom_alcance_bike25 != null)
+    document.getElementById('met-dom-alcance').textContent = fmtInt.format(P.dom_alcance_bike25);
+  if (P.dom_nao_atendida_bike25 != null)
+    document.getElementById('met-dom-naoatend').textContent = fmtInt.format(P.dom_nao_atendida_bike25);
 
   /* ============ mapa (Leaflet) ============ */
   var map = null;
