@@ -4,3 +4,5 @@ data/processed/*.geojson
 __pycache__/
 *.pyc
 data/processed/*.json
+data/raw/*.zip
+data/raw/RJ_*_malha/

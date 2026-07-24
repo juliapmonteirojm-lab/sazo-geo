@@ -18,6 +18,7 @@ Nenhuma chave de API entra no HTML.
 Uso: python -m dashboard.build
 """
 import json
+import math
 import unicodedata
 from pathlib import Path
 
@@ -58,20 +59,40 @@ def _in_polygon(lng: float, lat: float, geometry: dict) -> bool:
     return any(_point_in_ring(lng, lat, poly[0]) for poly in polys)
 
 
+def _haversine_km(a, b) -> float:
+    (la1, lo1), (la2, lo2) = a, b
+    r = 6371.0
+    dla, dlo = math.radians(la2 - la1), math.radians(lo2 - lo1)
+    h = (math.sin(dla / 2) ** 2
+         + math.cos(math.radians(la1)) * math.cos(math.radians(la2)) * math.sin(dlo / 2) ** 2)
+    return 2 * r * math.asin(math.sqrt(h))
+
+
+def _minmax(valores, inverso=False):
+    """Normaliza uma lista de valores para 0-100 (min-max). inverso: menor->100."""
+    lo, hi = min(valores), max(valores)
+    if hi == lo:
+        return [50.0 for _ in valores]
+    out = [100 * (v - lo) / (hi - lo) for v in valores]
+    return [100 - x for x in out] if inverso else out
+
+
 def build() -> None:
     iso = json.loads(Path(config.ARQ_ISOCRONAS).read_text(encoding="utf-8"))
     censo = json.loads(Path(config.ARQ_CENSO_BAIRROS).read_text(encoding="utf-8"))
+    pois = json.loads(Path(config.ARQ_POIS).read_text(encoding="utf-8"))
     por_nome = {_norm(b["nome"]): b for b in censo["bairros"]}
 
     bike25 = next((f["geometry"] for f in iso["features"]
                    if f["properties"]["mode"] == "bike"
                    and f["properties"]["minutes"] == 25), None)
 
-    # 1a passada: anexa censo real e calcula mercado; guarda max p/ normalizar
+    # 1a passada: anexa censo (Fase 2) + POIs (Fase 3) e calcula mercado.
     enriquecidas = []
     faltando = []
     for z in ZONAS:
         b = por_nome.get(_norm(z["nome"]))
+        p = pois.get(z["nome"], {"concorrentes": 0, "afinidade": 0})
         if not b:
             faltando.append(z["nome"])
             continue
@@ -80,26 +101,39 @@ def build() -> None:
         lat, lng = z["latlng"]
         enriquecidas.append({**z, "dom": dom, "pessoas": b["pessoas"],
                              "area_km2": b["area_km2"], "mercado": merc,
+                             "conc": p["concorrentes"], "afin_raw": p["afinidade"],
                              "no_alcance_bike25": bool(bike25 and _in_polygon(lng, lat, bike25))})
     if faltando:
         raise SystemExit(f"ERRO: bairros sem match no censo: {faltando}")
 
+    # Componentes normalizadas (0-100) sobre as 16 zonas:
     max_dom = max(z["dom"] for z in enriquecidas)
-    pesos = config.PESOS
+    # densidades por 1.000 domicilios (Fase 3, dados OSM reais)
+    dens_conc = [z["conc"] * 1000 / z["dom"] for z in enriquecidas]
+    dens_afin = [z["afin_raw"] * 1000 / z["dom"] for z in enriquecidas]
+    baixa_conc_s = _minmax(dens_conc, inverso=True)   # menos concorrencia -> maior
+    afinidade_s = _minmax(dens_afin)                  # mais ancoras -> maior
+    # acesso INTERIM: proxy por distancia a cozinha (Fase 4 troca por rateio real)
+    dist = [_haversine_km(config.COZINHA_LATLNG, z["latlng"]) for z in enriquecidas]
+    acesso_s = _minmax(dist, inverso=True)            # mais perto -> maior
 
+    pesos = config.PESOS
     zonas_out = []
-    for z in enriquecidas:
+    for i, z in enumerate(enriquecidas):
         demanda = round(100 * z["dom"] / max_dom)
-        acesso, afinidade, baixa_conc = z["comp_extra"]
+        acesso = round(acesso_s[i])
+        afinidade = round(afinidade_s[i])
+        baixa_conc = round(baixa_conc_s[i])
         score = round(pesos["demanda"] * demanda + pesos["acesso"] * acesso
                       + pesos["afinidade"] * afinidade
                       + pesos["baixa_concorrencia"] * baixa_conc)
+        score = max(0, min(100, score))
         zonas_out.append({
             "nome": z["nome"], "latlng": z["latlng"],
             "score": score, "dom": z["dom"], "pessoas": z["pessoas"],
-            "conc": z["conc"], "mercado": z["mercado"],
+            "conc": z["conc"], "afin": z["afin_raw"], "mercado": z["mercado"],
             "no_alcance_bike25": z["no_alcance_bike25"],
-            "comp": [demanda, acesso, afinidade, baixa_conc],  # demanda REAL
+            "comp": [demanda, acesso, afinidade, baixa_conc],
         })
     zonas_out.sort(key=lambda z: z["score"], reverse=True)
 
@@ -129,6 +163,11 @@ def build() -> None:
             "n_bairros": censo["validacao"]["n_bairros"],
             "dom_ocupados_zonas": dom_zonas,
             "dom_ocupados_no_alcance_bike25": dom_bike25,
+        },
+        "pois": {
+            "fonte": "OpenStreetMap (Overpass)",
+            "concorrentes": sum(z["conc"] for z in zonas_out),
+            "afinidade": sum(z["afin"] for z in zonas_out),
         },
     }
 

@@ -26,6 +26,14 @@ IBGE_BAIRROS_ZIP = "Agregados_por_Bairro_csv/Agregados_por_bairros_basico_BR_202
 IBGE_SETORES_ZIP = "Agregados_por_Setor_csv/Agregados_por_setores_basico_BR_20260520.zip"
 ARQ_CENSO_BAIRROS = "data/processed/censo_rio_bairros.json"
 
+# Malhas com atributos (geometria + domicilios) — Censo 2022, UF RJ
+IBGE_MALHA_BAIRROS = "malha_com_atributos/bairros/shp/UF/RJ/RJ_bairros_CD2022.zip"
+IBGE_MALHA_SETORES = "malha_com_atributos/setores/shp/UF/RJ/RJ_setores_CD2022.zip"
+EPSG_METRICO = 31983   # SIRGAS 2000 / UTM 23S — para calcular area em metros
+
+ARQ_POIS = "data/processed/pois_zonas.json"
+ARQ_SCORE = "data/processed/score_breakdown.json"
+
 # --- Modelo de demanda derivado do censo (premissas explicitas) ---
 # Fracao dos domicilios ocupados considerados publico-alvo de marmita saudavel
 TAXA_DOM_ALVO = 0.12

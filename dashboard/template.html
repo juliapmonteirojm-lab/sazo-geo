@@ -312,7 +312,7 @@
     <p class="kicker">Análise de mercado geográfico — onde crescer na Zona Sul</p>
     <div class="meta-row">
       <span class="meta-date">Análise de Julho de 2026</span>
-      <span class="badge">Domicílios: IBGE 2022 · scores parciais</span>
+      <span class="badge">IBGE 2022 + OSM · acesso interino</span>
     </div>
     <div class="thesis">
       <strong>A tese:</strong> o gargalo da Sazô hoje é <strong>capacidade e cobertura, não demanda</strong> —
@@ -449,11 +449,12 @@
           <li>As <strong>isócronas</strong> (áreas alcançáveis por tempo) vêm da API do <strong>OpenRouteService</strong>, calculadas sobre a malha viária real do Rio, com os perfis <code>cycling-regular</code> (bike, 15 e 25 min) e <code>driving-car</code> (carro, 20 e 35 min), a partir da cozinha em Botafogo.</li>
           <li>Os <strong>domicílios e a população de cada zona</strong> são do <strong>Censo 2022 do IBGE</strong> (Agregados por Setores Censitários, nível bairro). No município do Rio conferem: <span id="met-censo-dom">—</span> domicílios e <span id="met-censo-pop">—</span> pessoas — os mesmos totais chegando pela via de setores e pela de bairros.</li>
           <li>A componente <strong>demanda</strong> do score é derivada diretamente desses domicílios ocupados.</li>
+          <li>A <strong>contagem de concorrentes</strong> (restaurantes e lanchonetes) e as <strong>âncoras de afinidade</strong> (academias, estúdios, lojas de produto natural e casas de suco) vêm do <strong>OpenStreetMap</strong>, atribuídas a cada bairro pelo polígono que as contém. Alimentam as componentes <strong>afinidade</strong> e <strong>baixa concorrência</strong> do score.</li>
           <li>O mapa-base e a geografia são do OpenStreetMap, via CARTO.</li>
         </ul>
         <h4>O que é <span class="tag-ilust">ilustrativo</span> (por enquanto)</h4>
         <ul>
-          <li>As componentes <strong>acesso, afinidade e baixa concorrência</strong> do score — e a <strong>contagem de concorrentes</strong> — ainda são estimativas. Elas serão substituídas quando rodarem o rateio espacial das isócronas (Fase 4) e a contagem real de POIs (Fase 3). A estrutura não muda, só esses números.</li>
+          <li>Só a componente <strong>acesso</strong> ainda é uma estimativa (proxy pela distância à cozinha). Ela será substituída pelo rateio espacial real das isócronas (Fase 4) — a estrutura não muda, só esse número.</li>
         </ul>
         <h4>Premissas assumidas</h4>
         <ul>
@@ -473,7 +474,7 @@
 
   <footer>
     <span>Rotas e isócronas © OpenRouteService</span>
-    <span>Mapa © OpenStreetMap contributors © CARTO</span>
+    <span>Mapa e POIs © OpenStreetMap contributors © CARTO</span>
     <span>Domicílios e população: IBGE — Censo 2022</span>
   </footer>
 
