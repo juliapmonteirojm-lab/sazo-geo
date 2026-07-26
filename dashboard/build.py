@@ -212,6 +212,8 @@ def build() -> None:
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(html, encoding="utf-8")
+    # index.html (mesmo conteúdo) para o site servir no "/" em qualquer host estático
+    (OUT.parent / "index.html").write_text(html, encoding="utf-8")
     kb = OUT.stat().st_size / 1024
     print(f"OK: {OUT} ({kb:.0f} KB) — {len(zonas_out)} zonas, "
           f"{len(iso['features'])} isocronas.")
