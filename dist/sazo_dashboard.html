@@ -140,6 +140,19 @@
   #map{height:520px;width:100%;background:var(--surface-2)}
   @media (max-width:700px){ #map{height:360px} }
   .map-caption{margin:12px 2px 0;font-size:.9rem;color:var(--ink-2)}
+  .acao-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+  .acao-col{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .acao-col h3{margin:0 0 2px;font-size:.95rem;display:flex;align-items:center;gap:8px}
+  .acao-dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .acao-col .sub{margin:0 0 10px;font-size:.78rem;color:var(--ink-2)}
+  .acao-col ul{list-style:none;margin:0;padding:0}
+  .acao-col li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--border);font-size:.86rem}
+  .acao-col li:first-child{border-top:none}
+  .acao-col li .nm{font-weight:700;color:var(--ink);cursor:pointer}
+  .acao-col li .nm:hover{color:var(--terra)}
+  .acao-col li .mt{color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .acao-col li .empty{color:var(--ink-2);font-style:italic}
+  .acao-nota{margin:14px 2px 0;font-size:.9rem;color:var(--ink);font-weight:600}
   .map-fallback{
     display:flex;align-items:center;justify-content:center;text-align:center;
     height:100%;padding:32px;color:var(--ink-2);font-size:1rem;
@@ -150,10 +163,18 @@
   }
   .leaflet-popup-content{margin:12px 16px;line-height:1.45}
   .leaflet-container a.leaflet-popup-close-button{color:var(--ink-2)}
-  .popup-title{font-weight:800;font-size:1rem;margin-bottom:2px}
-  .popup-score{font-size:.8rem;font-weight:700;color:var(--terra);margin-bottom:6px}
-  .popup-grid{font-size:.85rem;color:var(--ink-2)}
+  .popup-title{font-weight:800;font-size:1rem;margin-bottom:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .popup-score{font-size:.8rem;font-weight:700;color:var(--terra);margin-bottom:4px}
+  .popup-motivo{font-size:.8rem;color:var(--ink-2);margin-bottom:8px;line-height:1.4}
+  .popup-grid{font-size:.85rem;color:var(--ink-2);line-height:1.6}
   .popup-grid b{color:var(--ink)}
+  .popup-cap{display:block;margin-top:6px;font-size:.78rem;font-weight:700;color:var(--terra-deep)}
+  .rec-badge{font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;color:#fff;white-space:nowrap}
+  .rec-expandir{background:#2e7d46}   /* verde — oportunidade */
+  .rec-adensar{background:#c2552b}    /* terracota — já atendido */
+  .rec-testar{background:#b5892a}     /* âmbar — piloto */
+  .rec-carro{background:#7a5c49}      /* marrom — logística maior */
   .flame-pin{
     width:30px;height:30px;border-radius:50% 50% 50% 4px;
     background:var(--terra);transform:rotate(0deg);
@@ -379,8 +400,15 @@
     </div>
     <p class="map-caption">
       Repare no contraste: o contorno tracejado é onde a Sazô entrega <em>hoje</em>; o anel de bike de 25 min é onde ela
-      <em>já consegue chegar</em> sem mudar nada na operação.
+      <em>já consegue chegar</em> sem mudar nada na operação. Passe o mouse (ou toque) em uma bolha para ver a recomendação da zona.
     </p>
+  </section>
+
+  <section aria-label="Plano de ação">
+    <h2>Plano de ação — por onde começar</h2>
+    <p class="section-sub">O que os dados sugerem fazer com cada bairro, do mais acionável ao menos. Muda com o slider de captura.</p>
+    <div id="acao-grid" class="acao-grid"></div>
+    <p class="acao-nota" id="acao-nota"></p>
   </section>
 
   <section aria-label="Ranking de zonas">
@@ -607,13 +635,59 @@
   var mapLayers = {};     // chave -> layer
   var openZone = null;    // zona com popup aberto
 
+  var COMP_LABEL = ['demanda', 'acesso de bike', 'afinidade saudável', 'baixa concorrência'];
+
+  function servedHoje(z){ return (P.atendido_hoje || []).indexOf(z.nome) !== -1; }
+
+  // Recomendação acionável a partir dos dados reais da zona.
+  function recomendacao(z){
+    var acesso = (z.comp && z.comp[1]) || 0;
+    var reachBike = acesso >= 55;   // maior parte do bairro no raio de bike 25 min
+    if (servedHoje(z))
+      return { rotulo:'Adensar', classe:'rec-adensar',
+        motivo:'Já entregamos aqui — o ganho vem de aumentar frequência e indicação, não de área nova.' };
+    if (reachBike && z.score >= 62)
+      return { rotulo:'Expandir agora', classe:'rec-expandir',
+        motivo:'Alcançável de bike, ainda sem atendimento e com forte potencial. É o alvo da tese.' };
+    if (reachBike)
+      return { rotulo:'Testar', classe:'rec-testar',
+        motivo:'Dá para chegar de bike; potencial médio — vale um piloto pequeno antes de investir.' };
+    return { rotulo:'Exige carro', classe:'rec-carro',
+      motivo:'Fora do raio confortável de bike — só compensa com logística de entrega maior.' };
+  }
+
+  function driverNome(z){
+    var c = z.comp || [0,0,0,0], bi = 0;
+    for (var i = 1; i < 4; i++){ if (c[i] > c[bi]) bi = i; }
+    return COMP_LABEL[bi];
+  }
+  function nivel(v){ return v >= 67 ? 'alta' : v >= 34 ? 'média' : 'baixa'; }
+  function nivelConcorrencia(z){ // baixa_conc alto = concorrência baixa
+    var bc = (z.comp && z.comp[3]) || 0;
+    return bc >= 67 ? 'baixa' : bc >= 34 ? 'média' : 'alta';
+  }
+
+  // Realidade de produção: a captura atual dessa zona cabe na capacidade ociosa?
+  function capacityNote(mps){
+    var ociosa = P.ociosa || 250;
+    if (mps >= ociosa)
+      return 'Sozinha já satura a capacidade ociosa (~' + fmtInt.format(ociosa) + '/sem) — o limite é produção, não mercado.';
+    var pct = Math.round(100 * mps / ociosa);
+    return 'Usa ~' + pct + '% da capacidade ociosa (~' + fmtInt.format(ociosa) + '/sem).';
+  }
+
   function popupHtml(z){
-    return '<div class="popup-title">' + escHtml(z.nome) + '</div>' +
-      '<div class="popup-score">Score ' + Math.round(z.score) + ' / 100</div>' +
+    var rec = recomendacao(z);
+    var mps = Math.round(z.mercado * state.captura / 100);   // marmitas/sem na captura atual
+    return '<div class="popup-title">' + escHtml(z.nome) +
+        '<span class="rec-badge ' + rec.classe + '">' + rec.rotulo + '</span></div>' +
+      '<div class="popup-score">Score ' + Math.round(z.score) + ' / 100 · puxada por ' + driverNome(z) + '</div>' +
+      '<div class="popup-motivo">' + rec.motivo + '</div>' +
       '<div class="popup-grid">' +
-      '<b>' + fmtInt.format(z.dom) + '</b> domicílios · <b>' + fmtInt.format(z.conc) + '</b> concorrentes<br>' +
-      'Receita potencial: <b>' + fmtBRL0.format(receita(z)) + '/mês</b><br>' +
-      '<span style="font-size:.75rem">com captura de ' + fmtPct1(state.captura) + '</span>' +
+      '<b>' + fmtInt.format(z.dom) + '</b> domicílios · <b>' + fmtInt.format(z.pessoas) + '</b> pessoas<br>' +
+      'Concorrência <b>' + nivelConcorrencia(z) + '</b> (' + fmtInt.format(z.conc) + ' restaurantes) · afinidade <b>' + nivel((z.comp && z.comp[2]) || 0) + '</b><br>' +
+      '<b>≈ ' + fmtInt.format(mps) + ' marmitas/sem</b> · <b>' + fmtBRL0.format(receita(z)) + '/mês</b> <span style="font-size:.72rem">(captura ' + fmtPct1(state.captura) + ')</span><br>' +
+      '<span class="popup-cap">' + capacityNote(mps) + '</span>' +
       '</div>';
   }
 
@@ -669,29 +743,34 @@
         var key = feat.properties.mode + '-' + feat.properties.minutes;
         var style = isoStyles[key] || { color:'#c2552b', weight:2 };
         var layer = L.geoJSON(feat, {
-          style: function(){ return style; }
+          style: function(){ return style; },
+          interactive: false   // deixa o hover/clique passar para as bolhas embaixo
         });
-        layer.bindTooltip(escHtml(feat.properties.label || key), {sticky:true});
         mapLayers[key] = layer;
         var b = layer.getBounds();
         unionBounds = unionBounds ? unionBounds.extend(b) : b;
       });
     }
 
-    /* ---- zonas: circleMarkers coropléticos ---- */
+    /* ---- zonas: circleMarkers coropléticos, num pane acima das isócronas ---- */
+    map.createPane('zonasPane');
+    map.getPane('zonasPane').style.zIndex = 450;   // acima do overlayPane (400)
     var maxMercado = ZONAS.reduce(function(m,z){ return Math.max(m, z.mercado); }, 1);
     var zonasGroup = L.layerGroup();
     ZONAS.forEach(function(z){
       var r = 7 + 13 * Math.sqrt(z.mercado / maxMercado);
+      var rec = recomendacao(z);
       var m = L.circleMarker(z.latlng, {
+        pane: 'zonasPane',
         radius: r,
         color: '#ffffff',
         weight: 1.5,
-        opacity: 0.9,
+        opacity: 0.95,
         fillColor: scoreColor(z.score),
-        fillOpacity: 0.82
+        fillOpacity: 0.85
       });
-      m.bindTooltip(escHtml(z.nome) + ' · score ' + Math.round(z.score), {direction:'top', offset:[0,-6]});
+      m.bindTooltip(escHtml(z.nome) + ' · score ' + Math.round(z.score) +
+        ' · <b>' + rec.rotulo + '</b>', {direction:'top', offset:[0,-6]});
       m.bindPopup(function(){ return popupHtml(z); });
       m.on('popupopen', function(){ openZone = z; });
       m.on('popupclose', function(){ if (openZone === z) openZone = null; });
@@ -725,9 +804,9 @@
         weight: 3,
         dashArray: '8 7',
         fill: false,
-        opacity: 0.95
+        opacity: 0.95,
+        interactive: false   // não intercepta o hover das bolhas
       });
-      atendidoPoly.bindTooltip('Atendido hoje: ' + (P.atendido_hoje || []).join(', '), {sticky:true});
       mapLayers['atendido'] = L.layerGroup([atendidoPoly]);
     }
 
@@ -858,7 +937,73 @@
       var mk = zoneMarkers[openZone.nome];
       if (mk && mk.getPopup() && mk.isPopupOpen()) mk.getPopup().setContent(popupHtml(openZone));
     }
+
+    renderAcao(ranked);
   }
+
+  /* ============ plano de ação ============ */
+  var ACAO_COLS = [
+    { rotulo:'Expandir agora', cor:'#2e7d46', sub:'Alcançável de bike, sem atendimento e com forte potencial.' },
+    { rotulo:'Testar',         cor:'#b5892a', sub:'Dá para chegar de bike; potencial médio — vale um piloto.' },
+    { rotulo:'Adensar',        cor:'#c2552b', sub:'Já entregamos aqui — crescer é aumentar frequência.' },
+    { rotulo:'Exige carro',    cor:'#7a5c49', sub:'Fora do raio de bike — só com logística maior.' }
+  ];
+
+  function renderAcao(ranked){
+    var grid = document.getElementById('acao-grid');
+    if (!grid) return;
+    var porRotulo = {};
+    ranked.forEach(function(z){
+      var r = recomendacao(z).rotulo;
+      (porRotulo[r] = porRotulo[r] || []).push(z);
+    });
+    grid.innerHTML = ACAO_COLS.map(function(col){
+      var zs = porRotulo[col.rotulo] || [];
+      var itens = zs.length ? zs.map(function(z){
+        var mps = Math.round(z.mercado * state.captura / 100);
+        return '<li><span class="nm" data-zona="' + escHtml(z.nome) + '">' + escHtml(z.nome) +
+          '</span><span class="mt">≈ ' + fmtInt.format(mps) + '/sem · score ' + Math.round(z.score) + '</span></li>';
+      }).join('') : '<li><span class="empty">—</span></li>';
+      return '<div class="acao-col"><h3><span class="acao-dot" style="background:' + col.cor + '"></span>' +
+        col.rotulo + ' <span style="color:var(--ink-2);font-weight:600">(' + zs.length + ')</span></h3>' +
+        '<p class="sub">' + col.sub + '</p><ul>' + itens + '</ul></div>';
+    }).join('');
+
+    // punchline: capacidade ociosa vs. alvos de expansão
+    var alvos = (porRotulo['Expandir agora'] || []).slice()
+      .sort(function(a,b){ return b.mercado - a.mercado; });
+    var ociosa = P.ociosa || 250, acc = 0, cabem = 0;
+    var somaAlvos = 0;
+    alvos.forEach(function(z){
+      var mps = Math.round(z.mercado * state.captura / 100);
+      somaAlvos += mps;
+      if (acc + mps <= ociosa){ acc += mps; cabem++; }
+    });
+    var nota = document.getElementById('acao-nota');
+    if (alvos.length && nota){
+      nota.textContent = 'Os alvos de “Expandir agora” somam ≈ ' + fmtInt.format(somaAlvos) +
+        ' marmitas/sem na captura de ' + fmtPct1(state.captura) + '. A capacidade ociosa (~' +
+        fmtInt.format(ociosa) + '/sem) cobre ' + (cabem === 0 ? 'menos de uma dessas zonas' :
+        cabem === 1 ? 'só a 1ª zona' : 'só as ' + cabem + ' primeiras') +
+        ' — o gargalo para crescer é produção, não demanda.';
+    } else if (nota){
+      nota.textContent = '';
+    }
+  }
+
+  // clique num nome do plano de ação: voa até a zona no mapa
+  document.getElementById('acao-grid').addEventListener('click', function(ev){
+    var el = ev.target.closest('.nm');
+    if (!el || !map) return;
+    var nome = el.getAttribute('data-zona');
+    var z = ZONAS.find(function(x){ return x.nome === nome; });
+    var mk = zoneMarkers[nome];
+    if (!z || !mk) return;
+    if (!map.hasLayer(mapLayers['zonas'])) mapLayers['zonas'].addTo(map);
+    map.flyTo(z.latlng, Math.max(map.getZoom(), 14), { duration: 0.6 });
+    mk.openPopup();
+    document.querySelector('.map-wrap').scrollIntoView({ behavior:'smooth', block:'center' });
+  });
 
   // ordenar clicando no cabeçalho
   document.querySelectorAll('#ranking-table thead th.sortable').forEach(function(th){
