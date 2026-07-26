@@ -276,12 +276,21 @@
   .receita-cell{font-weight:700;color:var(--olive-deep)}
   .comp-bars{display:flex;flex-direction:column;gap:2px;width:110px}
   .comp-bar{display:flex;align-items:center;gap:5px}
-  .comp-bar .tag{width:12px;font-size:.6rem;font-weight:800;color:var(--ink-2);text-align:center}
-  .comp-bar .track{flex:1;height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden}
-  .comp-bar .fill{height:100%;border-radius:3px}
+  .comp-bar .tag{width:20px;font-size:.6rem;font-weight:800;color:var(--ink-2);text-align:center;flex:none}
+  .comp-bar .track{flex:1;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+  .comp-bar .fill{display:block;height:100%;border-radius:3px;min-width:2px}
   .comp-legend{display:flex;flex-wrap:wrap;gap:12px;margin:10px 2px 0;font-size:.76rem;color:var(--ink-2)}
   .comp-legend span{display:inline-flex;align-items:center;gap:5px}
   .comp-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .comp-legend b{font-weight:800}
+  .comp-legend-note{margin:8px 2px 0;font-size:.8rem;color:var(--ink-2)}
+  .glo-link{color:var(--terra);font-weight:700}
+  dl.glossario{margin:8px 0 0}
+  dl.glossario dt{font-weight:800;color:var(--ink);margin-top:14px}
+  dl.glossario dd{margin:3px 0 0;color:var(--ink-2);line-height:1.55}
+  .formula{display:inline-block;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;
+    padding:1px 7px;font-size:.85em;color:var(--ink);font-variant-numeric:tabular-nums}
+  .glo-foot{margin-top:16px;font-size:.85rem;color:var(--ink-2);border-top:1px solid var(--line);padding-top:12px}
 
   /* ---------- Scenarios ---------- */
   .scenarios{
@@ -558,15 +567,65 @@
       </table>
     </div>
     <div class="comp-legend">
-      <span><i style="background:#c2552b"></i>Demanda</span>
-      <span><i style="background:#d9a441"></i>Acesso</span>
-      <span><i style="background:#6b7f3f"></i>Afinidade</span>
-      <span><i style="background:#7a5c49"></i>Baixa concorrência</span>
+      <span><i style="background:#c2552b"></i><b>Dem</b> — Demanda (domicílios)</span>
+      <span><i style="background:#d9a441"></i><b>Ace</b> — Acesso (alcance de bike)</span>
+      <span><i style="background:#6b7f3f"></i><b>Afi</b> — Afinidade (POIs saudáveis)</span>
+      <span><i style="background:#7a5c49"></i><b>Con</b> — Baixa concorrência</span>
     </div>
+    <p class="comp-legend-note">Cada componente vai de 0 a 100. O <strong>score</strong> é a média ponderada dos quatro — veja a fórmula em <a href="#glossario" class="glo-link">Como cada número é calculado</a>.</p>
   </section>
 
-  <section aria-label="Metodologia">
+  <section aria-label="Metodologia" id="glossario">
     <h2>Metodologia e premissas</h2>
+
+    <details open>
+      <summary>📐 Como cada número é calculado (glossário de fórmulas)</summary>
+      <div class="details-body">
+        <p>Todo número da página sai de dados reais (IBGE, OpenStreetMap, OpenRouteService) combinados com as premissas de negócio. Aqui está cada conta, em português:</p>
+        <dl class="glossario">
+          <dt>Score (0–100)</dt>
+          <dd>Média ponderada das 4 componentes: <span class="formula">score = 0,40·Demanda + 0,25·Acesso + 0,15·Afinidade + 0,20·Baixa&nbsp;concorrência</span>. Cada componente vai de 0 a 100.</dd>
+
+          <dt><b>Dem</b> — Demanda</dt>
+          <dd>Domicílios ocupados do bairro (IBGE Censo 2022), normalizados de 0 a 100 (o bairro com mais domicílios vira 100). É o tamanho bruto do mercado.</dd>
+
+          <dt><b>Ace</b> — Acesso</dt>
+          <dd>Fração da área do bairro que cai dentro da isócrona de bike de 25 min (0–100). 100 = o bairro inteiro é alcançável de bike. Vem do rateio espacial das isócronas do OpenRouteService.</dd>
+
+          <dt><b>Afi</b> — Afinidade</dt>
+          <dd>Densidade de âncoras saudáveis (academias, estúdios, lojas naturais, casas de suco) por 1.000 domicílios, normalizada de 0 a 100. Fonte: OpenStreetMap. Mais alto = público mais afim de comida saudável.</dd>
+
+          <dt><b>Con</b> — Baixa concorrência</dt>
+          <dd>Inverso da densidade de restaurantes/lanchonetes por 1.000 domicílios, normalizado de 0 a 100. Mais alto = <em>menos</em> concorrência. Fonte: OpenStreetMap.</dd>
+
+          <dt>Mercado endereçável (marmitas/sem)</dt>
+          <dd><span class="formula">domicílios ocupados × <span id="glo-taxa">12%</span> (fração público-alvo) × <span id="glo-mar">3</span> (marmitas/sem por domicílio-alvo)</span>. É o teto a 100% de captura. As duas premissas são editáveis.</dd>
+
+          <dt>Receita potencial/mês</dt>
+          <dd><span class="formula">mercado × captura × preço × 4,33 semanas</span>. <em>Bruta</em> — não desconta custos. Ex.: Copacabana = 23.087/sem × 1% × R$&nbsp;32 × 4,33 ≈ <b>R$&nbsp;31.989/mês</b>. A margem de verdade está na aba <strong>Simulações</strong>.</dd>
+
+          <dt>Margem bruta/marmita</dt>
+          <dd><span class="formula">preço − custo direto</span> = R$&nbsp;32 − R$&nbsp;13 = <b>R$&nbsp;19</b>.</dd>
+
+          <dt>Custo de entrega/marmita</dt>
+          <dd>Depende do modo (aba Simulações): <span class="formula">Própria = (R$/km × 2 × distância) ÷ marmitas por pedido</span>; <span class="formula">iFood = comissão% × preço</span>; <span class="formula">Entregador = salário ÷ marmitas do mês</span>.</dd>
+
+          <dt>Margem de contribuição/marmita</dt>
+          <dd><span class="formula">margem bruta − custo de entrega/marmita</span>. É o que cada marmita deixa depois de insumos e entrega, antes dos custos fixos.</dd>
+
+          <dt>Contribuição/mês (por zona)</dt>
+          <dd><span class="formula">marmitas/sem × 4,33 × margem de contribuição/marmita</span>.</dd>
+
+          <dt>Ponto de equilíbrio</dt>
+          <dd><span class="formula">custos fixos mensais ÷ margem de contribuição/marmita</span> = marmitas/mês para empatar. Acima disso, é lucro.</dd>
+
+          <dt>Capacidade ociosa</dt>
+          <dd><span class="formula">capacidade − produção atual</span> = 800 − 550 = <b>250 marmitas/sem</b>.</dd>
+        </dl>
+        <p class="glo-foot">Captura, preço, custos e modo de entrega são <strong>ajustáveis</strong> na aba Simulações — tudo recalcula na hora. O que é dado público (IBGE/OSM/ORS) não muda; o que é premissa de negócio, sim.</p>
+      </div>
+    </details>
+
     <details>
       <summary>De onde vem cada número (dados reais) e o que assumimos</summary>
       <div class="details-body">
@@ -874,6 +933,7 @@
   function scoreTextColor(s){ return s >= 70 ? '#fff' : 'var(--ink)'; }
   var COMP_COLORS = ['#c2552b', '#d9a441', '#6b7f3f', '#7a5c49'];
   var COMP_NAMES = ['Demanda', 'Acesso', 'Afinidade', 'Baixa concorrência'];
+  var COMP_ABBR = ['Dem', 'Ace', 'Afi', 'Con'];
 
   function escHtml(s){
     return String(s).replace(/[&<>"']/g, function(c){
@@ -915,6 +975,10 @@
     document.getElementById('met-dom-alcance').textContent = fmtInt.format(P.dom_alcance_bike25);
   if (P.dom_nao_atendida_bike25 != null)
     document.getElementById('met-dom-naoatend').textContent = fmtInt.format(P.dom_nao_atendida_bike25);
+  var gloTaxa = document.getElementById('glo-taxa');
+  if (gloTaxa && P.taxa_dom_alvo != null) gloTaxa.textContent = Math.round(P.taxa_dom_alvo * 100) + '%';
+  var gloMar = document.getElementById('glo-mar');
+  if (gloMar && P.marmitas_sem_por_dom != null) gloMar.textContent = P.marmitas_sem_por_dom;
 
   /* ============ mapa (Leaflet) ============ */
   var map = null;
@@ -1164,8 +1228,8 @@
     var html = '<div class="comp-bars">';
     for (var i = 0; i < 4; i++){
       var v = Math.max(0, Math.min(100, (z.comp && z.comp[i]) || 0));
-      html += '<div class="comp-bar" title="' + COMP_NAMES[i] + ': ' + Math.round(v) + '">' +
-        '<span class="tag">' + COMP_NAMES[i].charAt(0) + '</span>' +
+      html += '<div class="comp-bar" title="' + COMP_NAMES[i] + ': ' + Math.round(v) + '/100">' +
+        '<span class="tag">' + COMP_ABBR[i] + '</span>' +
         '<span class="track"><span class="fill" style="width:' + v + '%;background:' + COMP_COLORS[i] + '"></span></span>' +
         '</div>';
     }
