@@ -87,6 +87,9 @@ def build() -> None:
     score_bd = None
     if Path(config.ARQ_SCORE).exists():
         score_bd = json.loads(Path(config.ARQ_SCORE).read_text(encoding="utf-8"))
+    bairros_geo = None
+    if Path(config.ARQ_BAIRROS_GEO).exists():
+        bairros_geo = json.loads(Path(config.ARQ_BAIRROS_GEO).read_text(encoding="utf-8"))
 
     bike25 = next((f["geometry"] for f in iso["features"]
                    if f["properties"]["mode"] == "bike"
@@ -197,6 +200,8 @@ def build() -> None:
     }
 
     data = {"premissas": premissas, "zonas": zonas_out, "isocronas": iso}
+    if bairros_geo:
+        data["bairros_geo"] = bairros_geo
     blob = "window.SAZO_DATA = " + json.dumps(data, ensure_ascii=False) + ";"
 
     html = TEMPLATE.read_text(encoding="utf-8")

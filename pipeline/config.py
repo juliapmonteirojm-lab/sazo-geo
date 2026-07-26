@@ -33,6 +33,9 @@ EPSG_METRICO = 31983   # SIRGAS 2000 / UTM 23S — para calcular area em metros
 
 ARQ_POIS = "data/processed/pois_zonas.json"
 ARQ_SCORE = "data/processed/score_breakdown.json"
+ARQ_BAIRROS_GEO = "data/processed/bairros_geo.json"
+# Tolerancia de simplificacao das geometrias de bairro para o cliente (~30m)
+SIMPLIFY_TOL = 0.0003
 
 # --- Modelo de demanda derivado do censo (premissas explicitas) ---
 # Fracao dos domicilios ocupados considerados publico-alvo de marmita saudavel

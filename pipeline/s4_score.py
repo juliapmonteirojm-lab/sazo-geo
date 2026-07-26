@@ -15,7 +15,7 @@ Uso: python -m pipeline.s4_score
 import json
 from pathlib import Path
 
-from shapely.geometry import shape
+from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
 from shapely.prepared import prep
 
@@ -52,8 +52,8 @@ def run() -> dict:
 
     # bairros (16) em metros; regiao atendida hoje = uniao de 3 bairros
     nomes = [z["nome"] for z in ZONAS]
-    bairros = {n: geo.para_metrico(g).buffer(0)
-               for n, g in geo.carregar_bairros(nomes=nomes).items()}
+    bairros_wgs = geo.carregar_bairros(nomes=nomes)
+    bairros = {n: geo.para_metrico(g).buffer(0) for n, g in bairros_wgs.items()}
     atendido = unary_union([bairros[n] for n in ATENDIDO_HOJE]).buffer(0)
     nao_atendida_geom = bike25.difference(atendido)
 
@@ -95,6 +95,20 @@ def run() -> dict:
     dest = Path(config.ARQ_SCORE)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+
+    # poligonos simplificados dos bairros (WGS84) para o simulador do dashboard
+    def _round_geo(g):
+        def rnd(coords):
+            if isinstance(coords[0], (int, float)):
+                return [round(coords[0], 5), round(coords[1], 5)]
+            return [rnd(c) for c in coords]
+        m = mapping(g)
+        m["coordinates"] = rnd(m["coordinates"])
+        return m
+    bairros_geo = {n: _round_geo(g.simplify(config.SIMPLIFY_TOL, preserve_topology=True))
+                   for n, g in bairros_wgs.items()}
+    gdest = Path(config.ARQ_BAIRROS_GEO)
+    gdest.write_text(json.dumps(bairros_geo, ensure_ascii=False), encoding="utf-8")
 
     print("=== Fase 4 — rateio espacial ===")
     print(f"  setores considerados:        {n_setores}")

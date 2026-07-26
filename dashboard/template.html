@@ -153,6 +153,33 @@
   .acao-col li .mt{color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
   .acao-col li .empty{color:var(--ink-2);font-style:italic}
   .acao-nota{margin:14px 2px 0;font-size:.9rem;color:var(--ink);font-weight:600}
+  /* tabs */
+  .tabs{display:flex;gap:6px;border-bottom:2px solid var(--border);margin-bottom:16px}
+  .tab{appearance:none;border:none;background:none;cursor:pointer;font:inherit;font-weight:700;
+    color:var(--ink-2);padding:8px 14px;border-radius:8px 8px 0 0;border-bottom:2px solid transparent;margin-bottom:-2px}
+  .tab.is-active{color:var(--terra);border-bottom-color:var(--terra)}
+  .tab:hover{color:var(--ink)}
+  .tab-panel[hidden]{display:none}
+  /* simulador */
+  .sim-search{display:flex;gap:8px;margin-bottom:10px}
+  .sim-search input{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--border);border-radius:10px;
+    background:var(--bg);color:var(--ink);font:inherit}
+  .sim-search button,.sim-actions .ghost{padding:9px 14px;border-radius:10px;border:none;cursor:pointer;
+    font:inherit;font-weight:700;background:var(--terra);color:#fff}
+  .sim-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .sim-actions .ghost{background:transparent;color:var(--terra);border:1px solid var(--terra)}
+  .sim-actions .ghost.armed{background:var(--terra);color:#fff}
+  .sim-hint{font-size:.8rem;color:var(--ink-2)}
+  .sim-result{margin-top:12px;font-size:.9rem;color:var(--ink-2);line-height:1.6}
+  .sim-result[hidden]{display:none}
+  .sim-result b{color:var(--ink)}
+  .sim-line{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-top:1px solid var(--border)}
+  .sim-line:first-child{border-top:none}
+  .reach-badges{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+  .reach{font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:999px;white-space:nowrap}
+  .reach.ok{background:#2e7d46;color:#fff}
+  .reach.no{background:var(--border);color:var(--ink-2)}
+  .map-cursor-pick{cursor:crosshair !important}
   .map-fallback{
     display:flex;align-items:center;justify-content:center;text-align:center;
     height:100%;padding:32px;color:var(--ink-2);font-size:1rem;
@@ -438,31 +465,68 @@
     </div>
   </section>
 
-  <section aria-label="Painel de cenários">
-    <h2>Painel de cenários</h2>
-    <p class="section-sub">Teste as duas premissas mais questionáveis da análise — em tempo real.</p>
-    <div class="scenarios">
-      <div class="scenario-card">
-        <h3>Taxa de captura de mercado</h3>
-        <p class="desc">Que fração dos domicílios que gastam com comida fora a Sazô converte em clientes?</p>
-        <div class="slider-row">
-          <input type="range" id="captura-slider" min="0.5" max="3.0" step="0.1" value="1.0"
-                 aria-label="Taxa de captura de mercado, de 0,5% a 3%">
-          <span class="slider-val" id="captura-val">1,0%</span>
+  <section aria-label="Cenários e simulador">
+    <h2>Cenários &amp; simulador</h2>
+    <p class="section-sub">Teste as premissas da análise — e simule a demanda de um endereço específico.</p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab is-active" data-tab="cenarios" role="tab" aria-selected="true">Cenários</button>
+      <button class="tab" data-tab="simulador" role="tab" aria-selected="false">Simulador de endereço</button>
+    </div>
+
+    <div class="tab-panel is-active" id="tab-cenarios" role="tabpanel">
+      <div class="scenarios">
+        <div class="scenario-card">
+          <h3>Taxa de captura de mercado</h3>
+          <p class="desc">Que fração dos domicílios que gastam com comida fora a Sazô converte em clientes?</p>
+          <div class="slider-row">
+            <input type="range" id="captura-slider" min="0.5" max="3.0" step="0.1" value="1.0"
+                   aria-label="Taxa de captura de mercado, de 0,5% a 3%">
+            <span class="slider-val" id="captura-val">1,0%</span>
+          </div>
+          <div class="slider-ends"><span>0,5% conservador</span><span>3,0% otimista</span></div>
+          <p class="scenario-note">Mexer no slider muda a <strong>magnitude</strong> da receita, não o <strong>ranking</strong> das zonas.</p>
         </div>
-        <div class="slider-ends"><span>0,5% conservador</span><span>3,0% otimista</span></div>
-        <p class="scenario-note">Mexer no slider muda a <strong>magnitude</strong> da receita, não o <strong>ranking</strong> das zonas.</p>
+        <div class="scenario-card">
+          <h3>Peso: demanda ↔ proximidade</h3>
+          <p class="desc">E se a análise valorizasse mais a demanda bruta — ou a proximidade da cozinha?</p>
+          <div class="slider-row">
+            <input type="range" id="peso-slider" min="0" max="100" step="1" value="50"
+                   aria-label="Peso entre demanda e proximidade">
+            <span class="slider-val" id="peso-val">Equilibrado</span>
+          </div>
+          <div class="slider-ends"><span>← Demanda</span><span>Proximidade →</span></div>
+          <span class="chip" id="top5-chip">Top 5 estável: 5/5</span>
+        </div>
       </div>
-      <div class="scenario-card">
-        <h3>Peso: demanda ↔ proximidade</h3>
-        <p class="desc">E se a análise valorizasse mais a demanda bruta — ou a proximidade da cozinha?</p>
-        <div class="slider-row">
-          <input type="range" id="peso-slider" min="0" max="100" step="1" value="50"
-                 aria-label="Peso entre demanda e proximidade">
-          <span class="slider-val" id="peso-val">Equilibrado</span>
+    </div>
+
+    <div class="tab-panel" id="tab-simulador" role="tabpanel" hidden>
+      <div class="scenarios">
+        <div class="scenario-card">
+          <h3>Esse endereço vale a pena?</h3>
+          <p class="desc">Digite um endereço da Zona Sul (ou escolha um ponto no mapa) e veja se a Sazô alcança, e a demanda estimada ali.</p>
+          <div class="sim-search">
+            <input type="text" id="sim-addr" placeholder="Ex.: Rua Voluntários da Pátria, 190" aria-label="Endereço para simular">
+            <button id="sim-buscar" type="button">Buscar</button>
+          </div>
+          <div class="sim-actions">
+            <button id="sim-pick" type="button" class="ghost">📍 Escolher ponto no mapa</button>
+            <span class="sim-hint" id="sim-hint"></span>
+          </div>
+          <div class="sim-result" id="sim-result" hidden></div>
         </div>
-        <div class="slider-ends"><span>← Demanda</span><span>Proximidade →</span></div>
-        <span class="chip" id="top5-chip">Top 5 estável: 5/5</span>
+        <div class="scenario-card">
+          <h3>Calculadora de meta</h3>
+          <p class="desc">Quanto a mais a Sazô quer faturar por mês? Veja quantas marmitas/semana isso exige — e se cabe na capacidade ociosa.</p>
+          <div class="slider-row">
+            <input type="range" id="meta-slider" min="1000" max="40000" step="500" value="8000"
+                   aria-label="Meta de faturamento extra por mês">
+            <span class="slider-val" id="meta-val">R$ 8.000</span>
+          </div>
+          <div class="slider-ends"><span>R$ 1 mil</span><span>R$ 40 mil</span></div>
+          <div class="sim-result" id="meta-result"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -501,6 +565,7 @@
   <footer>
     <span>Rotas e isócronas © OpenRouteService</span>
     <span>Mapa e POIs © OpenStreetMap contributors © CARTO</span>
+    <span>Busca de endereço: Nominatim / OpenStreetMap</span>
     <span>Domicílios e população: IBGE — Censo 2022</span>
   </footer>
 
@@ -1042,6 +1107,7 @@
     state.captura = parseFloat(capturaSlider.value);
     document.getElementById('captura-val').textContent = fmtPct1(state.captura);
     renderTable();
+    refreshSim();
   });
 
   pesoSlider.addEventListener('input', function(){
@@ -1055,10 +1121,175 @@
     renderTable();
   });
 
+  /* ============ abas ============ */
+  function switchTab(name){
+    document.querySelectorAll('.tab').forEach(function(t){
+      var on = t.getAttribute('data-tab') === name;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach(function(p){
+      var on = p.id === 'tab-' + name;
+      p.classList.toggle('is-active', on);
+      p.hidden = !on;
+    });
+    if (name === 'simulador' && map) setTimeout(function(){ map.invalidateSize(); }, 40);
+  }
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){ switchTab(t.getAttribute('data-tab')); });
+  });
+
+  /* ============ simulador de endereço ============ */
+  var simMarker = null, lastSim = null, picking = false;
+
+  function ptInRing(lng, lat, ring){
+    var inside = false;
+    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++){
+      var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+      if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
+  function ptInGeom(lng, lat, geom){
+    if (!geom) return false;
+    var polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+    return polys.some(function(poly){ return ptInRing(lng, lat, poly[0]); });
+  }
+  function bairroAt(lat, lng){
+    var bg = DATA.bairros_geo;
+    if (bg){
+      for (var nome in bg){ if (ptInGeom(lng, lat, bg[nome])) return nome; }
+      return null;   // fora dos 16 bairros
+    }
+    var best = null, bd = 1e18;   // fallback: centroide mais próximo
+    ZONAS.forEach(function(z){
+      var d = Math.pow(z.latlng[0]-lat,2) + Math.pow(z.latlng[1]-lng,2);
+      if (d < bd){ bd = d; best = z.nome; }
+    });
+    return best;
+  }
+  function reachAt(lat, lng){
+    var res = {};
+    ((DATA.isocronas && DATA.isocronas.features) || []).forEach(function(f){
+      res[f.properties.mode + '-' + f.properties.minutes] = ptInGeom(lng, lat, f.geometry);
+    });
+    return res;
+  }
+  function haversineKm(aLat, aLng, bLat, bLng){
+    var R = 6371, dLa = (bLat-aLat)*Math.PI/180, dLo = (bLng-aLng)*Math.PI/180;
+    var h = Math.sin(dLa/2)*Math.sin(dLa/2) + Math.cos(aLat*Math.PI/180)*Math.cos(bLat*Math.PI/180)*Math.sin(dLo/2)*Math.sin(dLo/2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function reachBadge(ok, txt){ return '<span class="reach ' + (ok?'ok':'no') + '">' + (ok?'✓ ':'✕ ') + txt + '</span>'; }
+
+  function renderSim(){
+    if (!lastSim) return;
+    var s = lastSim, el = document.getElementById('sim-result');
+    el.hidden = false;
+    var z = s.nome ? ZONAS.find(function(x){ return x.nome === s.nome; }) : null;
+    var dist = haversineKm(P.cozinha[0], P.cozinha[1], s.lat, s.lng);
+    var html = '<div class="sim-line"><span>Local</span><b>' +
+        escHtml(s.label || (s.lat.toFixed(4) + ', ' + s.lng.toFixed(4))) + '</b></div>' +
+      '<div class="sim-line"><span>Bairro</span><b>' + (s.nome ? escHtml(s.nome) : 'fora dos bairros analisados') + '</b></div>' +
+      '<div class="sim-line"><span>Distância da cozinha</span><b>' + dist.toFixed(1).replace('.', ',') + ' km</b></div>' +
+      '<div class="reach-badges">' +
+        reachBadge(s.reach['bike-15'], 'bike 15 min') + reachBadge(s.reach['bike-25'], 'bike 25 min') +
+        reachBadge(s.reach['carro-20'], 'carro 20 min') + reachBadge(s.reach['carro-35'], 'carro 35 min') + '</div>';
+    if (z){
+      var rec = recomendacao(z), mps = Math.round(z.mercado * state.captura / 100);
+      html += '<div class="sim-line"><span>Recomendação</span><span class="rec-badge ' + rec.classe + '">' + rec.rotulo + '</span></div>' +
+        '<div class="sim-line"><span>Score · concorrência</span><b>' + Math.round(z.score) + ' · ' + nivelConcorrencia(z) + ' (' + z.conc + ' rest.)</b></div>' +
+        '<div class="sim-line"><span>Demanda do bairro</span><b>≈ ' + fmtInt.format(mps) + ' marmitas/sem · ' + fmtBRL0.format(receita(z)) + '/mês</b></div>' +
+        '<p class="popup-cap" style="margin-top:8px">' + rec.motivo + '</p>';
+    } else {
+      html += '<p class="popup-cap" style="margin-top:8px">Sem estimativa de demanda: o ponto está fora dos 16 bairros da Zona Sul analisados.</p>';
+    }
+    el.innerHTML = html;
+  }
+  function refreshSim(){ if (lastSim) renderSim(); }
+
+  function setSimPoint(lat, lng, label){
+    lastSim = { lat: lat, lng: lng, label: label, nome: bairroAt(lat, lng), reach: reachAt(lat, lng) };
+    if (map){
+      if (simMarker) map.removeLayer(simMarker);
+      simMarker = L.marker([lat, lng], { zIndexOffset: 2000 }).addTo(map);
+      simMarker.bindPopup('<b>Ponto simulado</b>' + (label ? '<br>' + escHtml(label) : '')).openPopup();
+      map.panTo([lat, lng]);
+    }
+    renderSim();
+  }
+
+  function geocode(q){
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&bounded=1' +
+      '&viewbox=-43.30,-22.88,-43.14,-23.05&q=' + encodeURIComponent(q + ', Rio de Janeiro');
+    return fetch(url, { headers: { 'Accept': 'application/json' } }).then(function(r){ return r.json(); });
+  }
+
+  var simInput = document.getElementById('sim-addr');
+  var simHint = document.getElementById('sim-hint');
+  document.getElementById('sim-buscar').addEventListener('click', function(){
+    var q = simInput.value.trim();
+    if (!q){ simHint.textContent = 'Digite um endereço.'; return; }
+    simHint.textContent = 'Buscando…';
+    geocode(q).then(function(res){
+      if (res && res.length){
+        var r = res[0];
+        simHint.textContent = '';
+        setSimPoint(parseFloat(r.lat), parseFloat(r.lon), r.display_name.split(',').slice(0, 3).join(', '));
+      } else {
+        simHint.textContent = 'Não encontrei esse endereço na Zona Sul. Tente “Escolher ponto no mapa”.';
+      }
+    }).catch(function(){
+      simHint.textContent = 'Busca de endereço indisponível (precisa de internet). Use “Escolher ponto no mapa”.';
+    });
+  });
+  simInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') document.getElementById('sim-buscar').click(); });
+
+  var pickBtn = document.getElementById('sim-pick');
+  pickBtn.addEventListener('click', function(){
+    if (!map){ simHint.textContent = 'O mapa não carregou.'; return; }
+    picking = !picking;
+    pickBtn.classList.toggle('armed', picking);
+    document.getElementById('map').classList.toggle('map-cursor-pick', picking);
+    simHint.textContent = picking ? 'Clique em um ponto no mapa…' : '';
+  });
+
+  /* ============ calculadora de meta ============ */
+  var metaSlider = document.getElementById('meta-slider');
+  function renderMeta(){
+    var meta = parseInt(metaSlider.value, 10);
+    document.getElementById('meta-val').textContent = fmtBRL0.format(meta);
+    var porMarmita = P.gasto_fora * P.semanas_mes;      // R$/mês por marmita/semana
+    var marmSem = meta / porMarmita;
+    var mercadoBike = ZONAS.filter(function(z){ return (z.comp && z.comp[1]) >= 55; })
+                           .reduce(function(s, z){ return s + z.mercado; }, 0);
+    var capturaNec = mercadoBike ? (marmSem / mercadoBike * 100) : 0;
+    var ociosa = P.ociosa || 250, cabe = marmSem <= ociosa;
+    document.getElementById('meta-result').innerHTML =
+      '<div class="sim-line"><span>Marmitas/semana necessárias</span><b>≈ ' + fmtInt.format(Math.round(marmSem)) + '</b></div>' +
+      '<div class="sim-line"><span>Captura equivalente (bairros de bike)</span><b>' + capturaNec.toFixed(2).replace('.', ',') + '%</b></div>' +
+      '<p class="popup-cap" style="margin-top:8px">' + (cabe
+        ? 'Cabe na capacidade ociosa (~' + fmtInt.format(ociosa) + '/sem). É uma meta de <b>vendas</b>, não de produção.'
+        : 'Acima da capacidade ociosa (~' + fmtInt.format(ociosa) + '/sem): exige ampliar a produção em ≈ ' + fmtInt.format(Math.round(marmSem - ociosa)) + '/sem.') + '</p>';
+  }
+  metaSlider.addEventListener('input', renderMeta);
+
   /* ============ boot ============ */
   document.getElementById('captura-val').textContent = fmtPct1(state.captura);
   buildMap();
   renderTable();
+  renderMeta();
+  // clique no mapa em modo "escolher ponto" define o ponto simulado
+  if (map){
+    map.on('click', function(e){
+      if (!picking) return;
+      picking = false;
+      pickBtn.classList.remove('armed');
+      document.getElementById('map').classList.remove('map-cursor-pick');
+      simHint.textContent = '';
+      setSimPoint(e.latlng.lat, e.latlng.lng, null);
+    });
+  }
 })();
 </script>
 </body>
