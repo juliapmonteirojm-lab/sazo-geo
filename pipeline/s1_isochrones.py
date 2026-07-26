@@ -34,11 +34,11 @@ def _load_key() -> str:
     return key
 
 
-def _fetch(profile: str, ranges: list, key: str) -> dict:
+def _fetch(profile: str, ranges: list, key: str, range_type: str = "time") -> dict:
     body = json.dumps({
         "locations": [config.COZINHA_LNGLAT],
         "range": ranges,
-        "range_type": "time",
+        "range_type": range_type,
     }).encode("utf-8")
     req = urlrequest.Request(
         ORS_URL.format(profile=profile),
@@ -59,13 +59,17 @@ def run(force: bool = False) -> dict:
     key = _load_key()
     features = []
     for spec in config.ISOCRONAS:
-        print(f"ORS -> {spec['profile']} {spec['range']}s ...")
-        fc = _fetch(spec["profile"], spec["range"], key)
-        for feat, mins in zip(fc["features"], spec["mins"]):
+        kmh = spec["kmh"]
+        # tempo (min) -> distancia de rede (metros) usando a velocidade assumida
+        metros = [round(kmh * (m / 60) * 1000) for m in spec["mins"]]
+        print(f"ORS -> {spec['profile']} {spec['mins']}min @ {kmh}km/h = {metros}m (distance)")
+        fc = _fetch(spec["profile"], metros, key, range_type="distance")
+        for feat, mins, dist_m in zip(fc["features"], spec["mins"], metros):
             feat["properties"] = {
                 "mode": spec["mode"],
                 "minutes": mins,
-                "seconds": feat["properties"].get("value"),
+                "kmh": kmh,
+                "metros": dist_m,
                 "label": f"{spec['mode']} {mins} min",
             }
             features.append(feat)
