@@ -30,6 +30,7 @@
     --chorop-5:#a84b22;
     --hl-bg:#fbeee4;
     --focus:#c2552b;
+    --border:var(--line);
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -328,6 +329,86 @@
   .tag-real{color:var(--olive);font-weight:800}
   .tag-ilust{color:var(--terra);font-weight:800}
 
+  /* ---------- Vistas (abas de nível superior) ---------- */
+  .view-bar{display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;margin-top:34px;border-bottom:2px solid var(--line)}
+  .view-tab{appearance:none;border:none;background:none;cursor:pointer;font:inherit;font-weight:800;font-size:1.05rem;
+    color:var(--ink-2);padding:10px 18px;border-radius:10px 10px 0 0;border-bottom:3px solid transparent;margin-bottom:-2px}
+  .view-tab.is-active{color:var(--terra);border-bottom-color:var(--terra)}
+  .view-tab:hover{color:var(--ink)}
+  .view-panel[hidden]{display:none}
+  .print-btn{margin-left:auto;appearance:none;border:1px solid var(--terra);background:transparent;color:var(--terra);
+    font:inherit;font-weight:700;font-size:.85rem;border-radius:999px;padding:6px 14px;cursor:pointer;margin-bottom:8px}
+  .print-btn:hover{background:var(--terra);color:#fff}
+
+  /* ---------- KPIs clicáveis ---------- */
+  .kpi.clickable{cursor:pointer}
+  .kpi-caret{font-size:.7rem;font-weight:700;color:var(--terra);letter-spacing:.03em;margin-top:4px;user-select:none}
+  .kpi-detail{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:.8rem;color:var(--ink-2);line-height:1.5}
+  .kpi-detail b{color:var(--ink)}
+  .kpi-detail[hidden]{display:none}
+
+  /* ---------- Premissas de negócio (inputs) ---------- */
+  .biz-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
+  .field{display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:var(--ink-2);font-weight:600}
+  .field input[type=number]{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);
+    color:var(--ink);font:inherit;font-weight:700;width:100%}
+  .field[hidden]{display:none}
+  .modo-label{font-size:.74rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);margin:4px 0 8px}
+  .segmented{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-wrap:wrap;margin-bottom:14px}
+  .segmented label{flex:1;min-width:130px;position:relative}
+  .segmented input{position:absolute;opacity:0;pointer-events:none}
+  .segmented span{display:block;text-align:center;padding:8px 10px;font-size:.85rem;font-weight:700;color:var(--ink-2);
+    cursor:pointer;background:var(--surface);border-left:1px solid var(--line)}
+  .segmented label:first-child span{border-left:none}
+  .segmented input:checked + span{background:var(--terra);color:#fff}
+  .segmented input:focus-visible + span{outline:2px solid var(--focus);outline-offset:-2px}
+
+  /* ---------- Margem por zona ---------- */
+  td.m-pos{color:#2e7d46;font-weight:800}
+  td.m-mid{color:#b5892a;font-weight:800}
+  td.m-neg{color:#c0392b;font-weight:800}
+  @media (prefers-color-scheme: dark){
+    td.m-pos{color:#6fbf8a} td.m-mid{color:#dfb35e} td.m-neg{color:#e77f70}
+  }
+
+  /* ---------- Mini-mapa do simulador ---------- */
+  #mini-map{height:300px;width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface-2)}
+
+  /* ---------- Resumo de impressão ---------- */
+  .print-only{display:none}
+  @media print{
+    @page{size:A4 portrait;margin:11mm}
+    body{background:#fff !important;color:#111;font-size:10.5px;line-height:1.35}
+    .view-bar,#view-verificacao,#view-simulacoes,footer,#data-missing{display:none !important}
+    .print-only{display:block !important;margin-top:8px}
+    .wrap{max-width:none;padding:0}
+    header{padding:0}
+    .wordmark{font-size:1.9rem;color:#c2552b}
+    .kicker{font-size:.9rem;margin-top:0;color:#555}
+    .meta-row{margin-top:4px}
+    .badge{color:#7a5c49;background:#f3ece2;border-color:#e6dccd}
+    .meta-date{color:#666}
+    .thesis{margin:8px 0 0;padding:7px 12px;background:#fbeee4;font-size:.82rem;border-left-color:#c2552b;color:#333}
+    .thesis strong{color:#a1401d}
+    #print-summary h3{font-size:.92rem;margin:12px 0 4px;color:#a1401d;letter-spacing:.01em}
+    .p-kpis{display:flex;gap:8px;margin-top:10px}
+    .p-kpi{flex:1;border:1px solid #ddd;border-radius:8px;padding:6px 9px}
+    .p-kpi .l{font-size:.6rem;text-transform:uppercase;letter-spacing:.04em;color:#666;font-weight:700;display:block}
+    .p-kpi .v{font-size:1rem;font-weight:800;display:block;color:#222}
+    .p-cols{display:flex;gap:16px;page-break-inside:avoid}
+    .p-cols>div{flex:1;min-width:0}
+    #print-summary table{width:100%;border-collapse:collapse;font-size:9.5px;min-width:0}
+    #print-summary th{font-size:8.5px;text-transform:uppercase;letter-spacing:.03em;color:#666;background:#fff;
+      border-bottom:1px solid #ccc;padding:3px 5px;text-align:left;white-space:nowrap}
+    #print-summary td{border-bottom:1px solid #e6e6e6;padding:3px 5px;white-space:nowrap;color:#222}
+    #print-summary td.num,#print-summary th.num{text-align:right;font-variant-numeric:tabular-nums}
+    .p-line{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted #ddd;padding:2.5px 0;color:#333}
+    .p-line b{color:#111}
+    .p-acao{margin:10px 0 0;font-size:.8rem;color:#222;border:1px solid #e3c9b5;background:#fdf4ec;border-radius:8px;padding:7px 10px}
+    .p-note{margin-top:8px;font-size:.68rem;color:#666}
+    #print-summary,#print-summary div,#print-summary table,#print-summary p{page-break-inside:avoid}
+  }
+
   footer{
     margin-top:56px;padding-top:22px;border-top:1px solid var(--line);
     font-size:.8rem;color:var(--ink-2);
@@ -372,28 +453,47 @@
     Os dados ainda não foram injetados neste template. Rode <code>build.py</code> para gerar a versão final do dashboard.
   </div>
 
+  <div class="view-bar" role="tablist" aria-label="Vistas do painel">
+    <button class="view-tab is-active" id="vtab-verificacao" data-view="verificacao" type="button"
+            role="tab" aria-selected="true" aria-controls="view-verificacao">Verificação</button>
+    <button class="view-tab" id="vtab-simulacoes" data-view="simulacoes" type="button"
+            role="tab" aria-selected="false" aria-controls="view-simulacoes">Simulações</button>
+    <button class="print-btn" id="btn-print" type="button"
+            title="Gera um resumo de 1 página para imprimir ou salvar em PDF">📄 Exportar resumo (PDF)</button>
+  </div>
+
+  <div id="view-verificacao" class="view-panel" role="tabpanel" aria-labelledby="vtab-verificacao">
+
   <section aria-label="Indicadores principais">
     <div class="kpis">
-      <div class="kpi">
+      <div class="kpi clickable" data-kpi="ociosa" role="button" tabindex="0" aria-expanded="false">
         <span class="label">Capacidade ociosa</span>
         <span class="value" id="kpi-ociosa">—</span>
         <span class="sub" id="kpi-ociosa-sub">refeições/semana paradas</span>
+        <span class="kpi-caret">detalhes ▾</span>
+        <div class="kpi-detail" id="kpi-det-ociosa" hidden></div>
       </div>
-      <div class="kpi">
+      <div class="kpi clickable" data-kpi="alcance" role="button" tabindex="0" aria-expanded="false">
         <span class="label">Alcance de bike · 25 min</span>
         <span class="value" id="kpi-alcance">—</span>
         <span class="sub">área real de entrega (isócrona ORS)</span>
+        <span class="kpi-caret">detalhes ▾</span>
+        <div class="kpi-detail" id="kpi-det-alcance" hidden></div>
       </div>
-      <div class="kpi hero">
+      <div class="kpi hero clickable" data-kpi="naoatendida" role="button" tabindex="0" aria-expanded="false">
         <span class="label">Área alcançável não atendida</span>
         <span class="value" id="kpi-naoatendida">—</span>
         <span class="sub">dá para crescer sem motor nem frota</span>
+        <span class="kpi-caret">detalhes ▾</span>
+        <div class="kpi-detail" id="kpi-det-naoatendida" hidden></div>
       </div>
-      <div class="kpi">
+      <div class="kpi clickable" data-kpi="receita" role="button" tabindex="0" aria-expanded="false">
         <span class="label">Receita potencial · top 5 zonas</span>
         <span class="value" id="kpi-receita">—</span>
         <span class="sub" id="kpi-receita-sub">com captura de —</span>
         <span class="live-tag">ao vivo · slider de captura</span>
+        <span class="kpi-caret">detalhes ▾</span>
+        <div class="kpi-detail" id="kpi-det-receita" hidden></div>
       </div>
     </div>
   </section>
@@ -465,72 +565,6 @@
     </div>
   </section>
 
-  <section aria-label="Cenários e simulador">
-    <h2>Cenários &amp; simulador</h2>
-    <p class="section-sub">Teste as premissas da análise — e simule a demanda de um endereço específico.</p>
-
-    <div class="tabs" role="tablist">
-      <button class="tab is-active" data-tab="cenarios" role="tab" aria-selected="true">Cenários</button>
-      <button class="tab" data-tab="simulador" role="tab" aria-selected="false">Simulador de endereço</button>
-    </div>
-
-    <div class="tab-panel is-active" id="tab-cenarios" role="tabpanel">
-      <div class="scenarios">
-        <div class="scenario-card">
-          <h3>Taxa de captura de mercado</h3>
-          <p class="desc">Que fração dos domicílios que gastam com comida fora a Sazô converte em clientes?</p>
-          <div class="slider-row">
-            <input type="range" id="captura-slider" min="0.5" max="3.0" step="0.1" value="1.0"
-                   aria-label="Taxa de captura de mercado, de 0,5% a 3%">
-            <span class="slider-val" id="captura-val">1,0%</span>
-          </div>
-          <div class="slider-ends"><span>0,5% conservador</span><span>3,0% otimista</span></div>
-          <p class="scenario-note">Mexer no slider muda a <strong>magnitude</strong> da receita, não o <strong>ranking</strong> das zonas.</p>
-        </div>
-        <div class="scenario-card">
-          <h3>Peso: demanda ↔ proximidade</h3>
-          <p class="desc">E se a análise valorizasse mais a demanda bruta — ou a proximidade da cozinha?</p>
-          <div class="slider-row">
-            <input type="range" id="peso-slider" min="0" max="100" step="1" value="50"
-                   aria-label="Peso entre demanda e proximidade">
-            <span class="slider-val" id="peso-val">Equilibrado</span>
-          </div>
-          <div class="slider-ends"><span>← Demanda</span><span>Proximidade →</span></div>
-          <span class="chip" id="top5-chip">Top 5 estável: 5/5</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-panel" id="tab-simulador" role="tabpanel" hidden>
-      <div class="scenarios">
-        <div class="scenario-card">
-          <h3>Esse endereço vale a pena?</h3>
-          <p class="desc">Digite um endereço da Zona Sul (ou escolha um ponto no mapa) e veja se a Sazô alcança, e a demanda estimada ali.</p>
-          <div class="sim-search">
-            <input type="text" id="sim-addr" placeholder="Ex.: Rua Voluntários da Pátria, 190" aria-label="Endereço para simular">
-            <button id="sim-buscar" type="button">Buscar</button>
-          </div>
-          <div class="sim-actions">
-            <button id="sim-pick" type="button" class="ghost">📍 Escolher ponto no mapa</button>
-            <span class="sim-hint" id="sim-hint"></span>
-          </div>
-          <div class="sim-result" id="sim-result" hidden></div>
-        </div>
-        <div class="scenario-card">
-          <h3>Calculadora de meta</h3>
-          <p class="desc">Quanto a mais a Sazô quer faturar por mês? Veja quantas marmitas/semana isso exige — e se cabe na capacidade ociosa.</p>
-          <div class="slider-row">
-            <input type="range" id="meta-slider" min="1000" max="40000" step="500" value="8000"
-                   aria-label="Meta de faturamento extra por mês">
-            <span class="slider-val" id="meta-val">R$ 8.000</span>
-          </div>
-          <div class="slider-ends"><span>R$ 1 mil</span><span>R$ 40 mil</span></div>
-          <div class="sim-result" id="meta-result"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <section aria-label="Metodologia">
     <h2>Metodologia e premissas</h2>
     <details>
@@ -555,12 +589,145 @@
         </ul>
         <h4>O que esta análise não cobre</h4>
         <ul>
-          <li>Custo de entrega por zona, tempo de rota real por pedido, sazonalidade e canibalização entre zonas vizinhas.</li>
+          <li>Tempo de rota real por pedido, sazonalidade e canibalização entre zonas vizinhas. O <em>custo de entrega por zona</em> é modelado na aba Simulações com premissas simples e editáveis (R$/km, comissão, salário) — não com roteirização real.</li>
           <li>Concorrência qualitativa (preço, posicionamento) — só a contagem de concorrentes diretos.</li>
         </ul>
       </div>
     </details>
   </section>
+
+  </div><!-- /view-verificacao -->
+
+  <div id="view-simulacoes" class="view-panel" role="tabpanel" aria-labelledby="vtab-simulacoes" hidden>
+
+  <section aria-label="Premissas de negócio">
+    <h2>Premissas de negócio</h2>
+    <p class="section-sub">Pré-preenchido com as premissas da análise — <strong>ajuste com seus números reais</strong>. Tudo abaixo recalcula na hora.</p>
+    <div class="scenario-card">
+      <div class="biz-grid">
+        <label class="field"><span>Preço de venda por marmita (R$)</span>
+          <input type="number" id="biz-preco" min="1" step="0.5" inputmode="decimal"></label>
+        <label class="field"><span>Custo direto por marmita (R$) — insumos + embalagem</span>
+          <input type="number" id="biz-custo" min="0" step="0.5" inputmode="decimal"></label>
+        <label class="field"><span>Custos fixos mensais (R$)</span>
+          <input type="number" id="biz-fixos" min="0" step="100" inputmode="decimal"></label>
+      </div>
+      <div class="modo-label" id="modo-label">Modo de entrega</div>
+      <div class="segmented" role="radiogroup" aria-labelledby="modo-label">
+        <label><input type="radio" name="biz-modo" value="propria" checked><span>Própria (bike)</span></label>
+        <label><input type="radio" name="biz-modo" value="ifood"><span>iFood (entrega)</span></label>
+        <label><input type="radio" name="biz-modo" value="entregador"><span>Entregador contratado</span></label>
+      </div>
+      <div class="biz-grid">
+        <label class="field" id="fld-km"><span>Custo por km rodado (R$) — premissa editável</span>
+          <input type="number" id="biz-km" min="0" step="0.1" inputmode="decimal"></label>
+        <label class="field" id="fld-ifood" hidden><span>Comissão iFood (%) — premissa editável</span>
+          <input type="number" id="biz-ifood" min="0" max="100" step="0.1" inputmode="decimal"></label>
+        <label class="field" id="fld-sal" hidden><span>Salário mensal do entregador (R$) — premissa editável</span>
+          <input type="number" id="biz-salario" min="0" step="50" inputmode="decimal"></label>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Economia unitária e ponto de equilíbrio">
+    <h2>Economia unitária &amp; ponto de equilíbrio</h2>
+    <p class="section-sub">Quanto sobra de cada marmita no modo de entrega escolhido — e quantas marmitas pagam as contas do mês.</p>
+    <div class="scenario-card" id="econ-card"></div>
+  </section>
+
+  <section aria-label="Margem por zona">
+    <h2>Margem por zona — onde dá lucro, não só onde tem gente</h2>
+    <p class="section-sub">A distância (e o modo de entrega) muda a margem: uma zona distante e cheia de gente pode render menos que uma vizinha. Clique numa coluna para ordenar.</p>
+    <div class="table-scroll">
+      <table id="margem-table">
+        <thead>
+          <tr>
+            <th class="sortable" data-mkey="nome">Zona<span class="arrow"></span></th>
+            <th class="sortable" data-mkey="dist" style="text-align:right">Dist. (km)<span class="arrow"></span></th>
+            <th class="sortable" data-mkey="margem" style="text-align:right">Margem líq./marmita<span class="arrow"></span></th>
+            <th class="sortable" data-mkey="mps" style="text-align:right">Marmitas/sem<span class="arrow"></span></th>
+            <th class="sortable" data-mkey="contrib" style="text-align:right">Contribuição/mês<span class="arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="margem-body"></tbody>
+      </table>
+    </div>
+    <p class="acao-nota" id="margem-nota"></p>
+  </section>
+
+  <section aria-label="Combinação ótima para a capacidade ociosa">
+    <h2>Combinação ótima para a capacidade ociosa</h2>
+    <p class="section-sub">Zonas ainda não atendidas e alcançáveis de bike, escolhidas por margem líquida — até preencher as marmitas/semana paradas.</p>
+    <div class="scenario-card" id="combo-card"></div>
+  </section>
+
+  <section aria-label="Simulador de endereço">
+    <h2>Simulador de endereço</h2>
+    <p class="section-sub">Digite um endereço da Zona Sul — ou clique/arraste o pino no mini-mapa — e veja alcance, demanda e margem naquele ponto.</p>
+    <div class="scenarios">
+      <div class="scenario-card">
+        <h3>Esse endereço vale a pena?</h3>
+        <div class="sim-search">
+          <input type="text" id="sim-addr" placeholder="Ex.: Rua Voluntários da Pátria, 190" aria-label="Endereço para simular">
+          <button id="sim-buscar" type="button">Buscar</button>
+        </div>
+        <span class="sim-hint" id="sim-hint">Ou clique direto no mini-mapa ao lado.</span>
+        <div class="sim-result" id="sim-result" hidden></div>
+      </div>
+      <div class="scenario-card">
+        <h3>Mini-mapa</h3>
+        <p class="desc">Isócronas de bike e carro; o pino é arrastável.</p>
+        <div id="mini-map"></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Cenários">
+    <h2>Cenários</h2>
+    <p class="section-sub">Teste as premissas de mercado — mudam o ranking (aba Verificação) e todas as contas desta aba.</p>
+    <div class="scenarios">
+      <div class="scenario-card">
+        <h3>Taxa de captura de mercado</h3>
+        <p class="desc">Que fração dos domicílios que gastam com comida fora a Sazô converte em clientes?</p>
+        <div class="slider-row">
+          <input type="range" id="captura-slider" min="0.5" max="3.0" step="0.1" value="1.0"
+                 aria-label="Taxa de captura de mercado, de 0,5% a 3%">
+          <span class="slider-val" id="captura-val">1,0%</span>
+        </div>
+        <div class="slider-ends"><span>0,5% conservador</span><span>3,0% otimista</span></div>
+        <p class="scenario-note">Mexer no slider muda a <strong>magnitude</strong> da receita, não o <strong>ranking</strong> das zonas.</p>
+      </div>
+      <div class="scenario-card">
+        <h3>Peso: demanda ↔ proximidade</h3>
+        <p class="desc">E se a análise valorizasse mais a demanda bruta — ou a proximidade da cozinha?</p>
+        <div class="slider-row">
+          <input type="range" id="peso-slider" min="0" max="100" step="1" value="50"
+                 aria-label="Peso entre demanda e proximidade">
+          <span class="slider-val" id="peso-val">Equilibrado</span>
+        </div>
+        <div class="slider-ends"><span>← Demanda</span><span>Proximidade →</span></div>
+        <span class="chip" id="top5-chip">Top 5 estável: 5/5</span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Calculadora de meta">
+    <h2>Calculadora de meta</h2>
+    <p class="section-sub">Quanto a mais de <strong>lucro</strong> a Sazô quer por mês? Agora dividido pela margem de contribuição real — não pelo preço cheio.</p>
+    <div class="scenario-card">
+      <div class="slider-row">
+        <input type="range" id="meta-slider" min="1000" max="40000" step="500" value="8000"
+               aria-label="Meta de lucro extra por mês">
+        <span class="slider-val" id="meta-val">R$ 8.000</span>
+      </div>
+      <div class="slider-ends"><span>R$ 1 mil</span><span>R$ 40 mil</span></div>
+      <div class="sim-result" id="meta-result"></div>
+    </div>
+  </section>
+
+  </div><!-- /view-simulacoes -->
+
+  <section id="print-summary" class="print-only" aria-hidden="true"></section>
 
   <footer>
     <span>Rotas e isócronas © OpenRouteService</span>
@@ -581,11 +748,31 @@
     document.getElementById('data-missing').hidden = false;
     var mapEl0 = document.getElementById('map');
     mapEl0.innerHTML = '<div class="map-fallback">Sem dados para desenhar o mapa — rode build.py.</div>';
+    // mesmo sem dados, as duas vistas continuam alternando
+    document.querySelectorAll('.view-tab').forEach(function(t){
+      t.addEventListener('click', function(){
+        var name = t.getAttribute('data-view');
+        document.querySelectorAll('.view-tab').forEach(function(x){
+          var on = x === t;
+          x.classList.toggle('is-active', on);
+          x.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        document.getElementById('view-verificacao').hidden = name !== 'verificacao';
+        document.getElementById('view-simulacoes').hidden = name !== 'simulacoes';
+      });
+    });
     return;
   }
 
   var P = DATA.premissas;
   var ZONAS = DATA.zonas.slice();
+
+  /* premissas de negócio (injetadas; defaults iguais aos do build para o template cru) */
+  var NEG = P.negocio || {
+    preco: 32, custo_marmita: 13, marmitas_por_pedido: 4, custo_entrega_pedido: 7,
+    custos_fixos_mes: 12000, custo_entrega_km: 2.0, ifood_taxa: 0.265,
+    ifood_taxa_basico: 0.152, entregador_salario_mes: 2200
+  };
 
   /* ============ estado ============ */
   var state = {
@@ -595,14 +782,49 @@
     sortDir: -1                               // -1 desc, 1 asc
   };
 
+  /* estado editável das premissas de negócio (aba Simulações) */
+  var biz = {
+    preco:    NEG.preco,
+    custo:    NEG.custo_marmita,
+    fixos:    NEG.custos_fixos_mes,
+    modo:     'propria',                     // 'propria' | 'ifood' | 'entregador'
+    custoKm:  NEG.custo_entrega_km,
+    ifoodPct: NEG.ifood_taxa * 100,
+    salario:  NEG.entregador_salario_mes
+  };
+
   /* ============ formatação pt-BR ============ */
   var fmtBRL0 = new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+  var fmtBRL2 = new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL', minimumFractionDigits:2, maximumFractionDigits:2});
   var fmtInt  = new Intl.NumberFormat('pt-BR');
   function fmtPct1(v){ return v.toFixed(1).replace('.', ',') + '%'; }
 
   /* ============ cálculos ============ */
   function receita(z){
     return z.mercado * (state.captura/100) * P.gasto_fora * P.semanas_mes;
+  }
+
+  /* ---- economia unitária (aba Simulações) ---- */
+  function margemBruta(){ return biz.preco - biz.custo; }
+  // custo de entrega por marmita, valor representativo do modo escolhido
+  function custoEntregaMedio(){
+    if (biz.modo === 'ifood')      return biz.preco * biz.ifoodPct / 100;
+    if (biz.modo === 'entregador') return biz.salario / (P.producao_atual * P.semanas_mes);
+    return NEG.custo_entrega_pedido / NEG.marmitas_por_pedido;   // própria: média atual (≈ R$1,75)
+  }
+  function margemContrib(){ return margemBruta() - custoEntregaMedio(); }
+  function zonaDistKm(z){ return (z.dist_km != null) ? z.dist_km : z._dist; }
+  // custo de entrega por marmita, específico da zona
+  function custoEntregaZona(z){
+    if (biz.modo === 'ifood')      return biz.preco * biz.ifoodPct / 100;
+    if (biz.modo === 'entregador') return biz.salario / (P.producao_atual * P.semanas_mes);
+    return (biz.custoKm * 2 * zonaDistKm(z)) / NEG.marmitas_por_pedido;  // ida e volta, rateado no pedido
+  }
+  function margemZona(z){ return margemBruta() - custoEntregaZona(z); }
+  function mpsZona(z){ return z.mercado * state.captura / 100; }          // marmitas/sem na captura atual
+  function contribZonaMes(z){ return mpsZona(z) * P.semanas_mes * margemZona(z); }
+  function modoNome(){
+    return biz.modo === 'ifood' ? 'iFood' : biz.modo === 'entregador' ? 'entregador contratado' : 'entrega própria (bike)';
   }
 
   // proximidade: distância haversine da cozinha, normalizada em score 0–100
@@ -756,18 +978,9 @@
       '</div>';
   }
 
-  function buildMap(){
-    if (typeof L === 'undefined'){
-      document.getElementById('map').innerHTML =
-        '<div class="map-fallback">O mapa precisa de conexão para carregar os blocos e a biblioteca Leaflet.<br>' +
-        'Os indicadores, o ranking e os cenários abaixo continuam funcionando normalmente.</div>';
-      return;
-    }
-
-    map = L.map('map', { scrollWheelZoom: false, zoomControl: true });
-
-    /* blocos base — CARTO Voyager (ruas + rótulos) / dark_matter no escuro.
-       Voyager mostra a malha viária de verdade, ao contrário do Positron. */
+  /* blocos base — CARTO Voyager (ruas + rótulos) / dark_matter no escuro,
+     com fallback para o OSM padrão. Fábrica compartilhada pelo mapa principal e pelo mini-mapa. */
+  function makeCartoTiles(){
     var darkMq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
     function tileUrl(){
       var variant = (darkMq && darkMq.matches) ? 'rastertiles/dark_matter' : 'rastertiles/voyager';
@@ -777,8 +990,7 @@
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       subdomains: 'abcd',
       maxZoom: 20
-    }).addTo(map);
-    /* fallback: se os tiles do CARTO não carregarem, usa o OSM padrão */
+    });
     var usouFallback = false;
     tiles.on('tileerror', function(){
       if (usouFallback) return;
@@ -789,6 +1001,19 @@
     if (darkMq && darkMq.addEventListener){
       darkMq.addEventListener('change', function(){ if(!usouFallback) tiles.setUrl(tileUrl()); });
     }
+    return tiles;
+  }
+
+  function buildMap(){
+    if (typeof L === 'undefined'){
+      document.getElementById('map').innerHTML =
+        '<div class="map-fallback">O mapa precisa de conexão para carregar os blocos e a biblioteca Leaflet.<br>' +
+        'Os indicadores, o ranking e os cenários abaixo continuam funcionando normalmente.</div>';
+      return;
+    }
+
+    map = L.map('map', { scrollWheelZoom: false, zoomControl: true });
+    makeCartoTiles().addTo(map);
 
     /* scroll do mouse só depois de clicar no mapa (a página continua rolável) */
     var mapEl = document.getElementById('map');
@@ -1107,7 +1332,7 @@
     state.captura = parseFloat(capturaSlider.value);
     document.getElementById('captura-val').textContent = fmtPct1(state.captura);
     renderTable();
-    refreshSim();
+    renderNegocio();
   });
 
   pesoSlider.addEventListener('input', function(){
@@ -1119,28 +1344,36 @@
     else lbl = 'Proximidade +' + (state.peso - 50) * 2 + '%';
     document.getElementById('peso-val').textContent = lbl;
     renderTable();
+    renderNegocio();   // o detalhe do KPI de receita lista o top 5 ajustado
   });
 
-  /* ============ abas ============ */
-  function switchTab(name){
-    document.querySelectorAll('.tab').forEach(function(t){
-      var on = t.getAttribute('data-tab') === name;
+  /* ============ vistas de nível superior (Verificação | Simulações) ============ */
+  var miniBuilt = false;
+  function switchView(name){
+    document.querySelectorAll('.view-tab').forEach(function(t){
+      var on = t.getAttribute('data-view') === name;
       t.classList.toggle('is-active', on);
       t.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    document.querySelectorAll('.tab-panel').forEach(function(p){
-      var on = p.id === 'tab-' + name;
-      p.classList.toggle('is-active', on);
-      p.hidden = !on;
-    });
-    if (name === 'simulador' && map) setTimeout(function(){ map.invalidateSize(); }, 40);
+    document.getElementById('view-verificacao').hidden = name !== 'verificacao';
+    document.getElementById('view-simulacoes').hidden = name !== 'simulacoes';
+    if (name === 'verificacao' && map){
+      setTimeout(function(){ map.invalidateSize(); }, 40);
+    }
+    if (name === 'simulacoes'){
+      if (!miniBuilt){ miniBuilt = true; buildMiniMap(); }
+      if (miniMap) setTimeout(function(){
+        miniMap.invalidateSize();
+        if (!miniFramed){ miniFrame(); }
+      }, 40);
+    }
   }
-  document.querySelectorAll('.tab').forEach(function(t){
-    t.addEventListener('click', function(){ switchTab(t.getAttribute('data-tab')); });
+  document.querySelectorAll('.view-tab').forEach(function(t){
+    t.addEventListener('click', function(){ switchView(t.getAttribute('data-view')); });
   });
 
-  /* ============ simulador de endereço ============ */
-  var simMarker = null, lastSim = null, picking = false;
+  /* ============ simulador de endereço (mini-mapa próprio) ============ */
+  var miniMap = null, miniMarker = null, lastSim = null, miniBounds = null, miniFramed = false;
 
   function ptInRing(lng, lat, ring){
     var inside = false;
@@ -1175,47 +1408,106 @@
     });
     return res;
   }
-  function haversineKm(aLat, aLng, bLat, bLng){
+  function pontoDistKm(aLat, aLng, bLat, bLng){
     var R = 6371, dLa = (bLat-aLat)*Math.PI/180, dLo = (bLng-aLng)*Math.PI/180;
     var h = Math.sin(dLa/2)*Math.sin(dLa/2) + Math.cos(aLat*Math.PI/180)*Math.cos(bLat*Math.PI/180)*Math.sin(dLo/2)*Math.sin(dLo/2);
     return 2 * R * Math.asin(Math.sqrt(h));
   }
   function reachBadge(ok, txt){ return '<span class="reach ' + (ok?'ok':'no') + '">' + (ok?'✓ ':'✕ ') + txt + '</span>'; }
 
+  var MINI_ISO = {
+    'bike-15':  { color:'#c2552b', weight:2.2, fillColor:'#c2552b', fillOpacity:0.10, opacity:0.95 },
+    'bike-25':  { color:'#e08b5e', weight:1.8, fillColor:'#e08b5e', fillOpacity:0.06, opacity:0.75 },
+    'carro-20': { color:'#6b7f3f', weight:1.6, fillColor:'#6b7f3f', fillOpacity:0.03, opacity:0.6 },
+    'carro-35': { color:'#9aab6b', weight:1.4, fillColor:'#9aab6b', fillOpacity:0.02, opacity:0.45 }
+  };
+
+  function miniFrame(){
+    if (!miniMap) return;
+    if (miniBounds && miniBounds.isValid()){
+      miniMap.fitBounds(miniBounds, { padding: [16, 16] });
+    } else {
+      miniMap.setView(P.cozinha, 12);
+    }
+    miniFramed = true;
+  }
+
+  function buildMiniMap(){
+    if (miniMap || typeof L === 'undefined') return;
+    var el = document.getElementById('mini-map');
+    if (!el) return;
+    miniMap = L.map('mini-map', { scrollWheelZoom: false, zoomControl: true });
+    makeCartoTiles().addTo(miniMap);
+    el.addEventListener('click', function(){ miniMap.scrollWheelZoom.enable(); });
+    el.addEventListener('mouseleave', function(){ miniMap.scrollWheelZoom.disable(); });
+
+    if (DATA.isocronas && DATA.isocronas.features){
+      DATA.isocronas.features.forEach(function(feat){
+        var key = feat.properties.mode + '-' + feat.properties.minutes;
+        var st = MINI_ISO[key];
+        if (!st) return;
+        var ly = L.geoJSON(feat, { style: function(){ return st; }, interactive: false }).addTo(miniMap);
+        var b = ly.getBounds();
+        miniBounds = miniBounds ? miniBounds.extend(b) : b;
+      });
+    }
+    var flame2 = L.divIcon({
+      className: '', html: '<div class="flame-pin">🔥</div>',
+      iconSize: [30, 30], iconAnchor: [15, 28]
+    });
+    L.marker(P.cozinha, { icon: flame2 }).addTo(miniMap).bindTooltip('Cozinha Sazô · Botafogo');
+    miniFrame();
+    miniMap.on('click', function(e){ setSimPoint(e.latlng.lat, e.latlng.lng, null); });
+    if (lastSim) placeMiniMarker(lastSim.lat, lastSim.lng, lastSim.label);
+  }
+
+  function placeMiniMarker(lat, lng, label){
+    if (!miniMap) return;
+    if (!miniMarker){
+      miniMarker = L.marker([lat, lng], { draggable: true, zIndexOffset: 2000 }).addTo(miniMap);
+      miniMarker.on('dragend', function(){
+        var ll = miniMarker.getLatLng();
+        setSimPoint(ll.lat, ll.lng, null, true);
+      });
+    } else {
+      miniMarker.setLatLng([lat, lng]);
+    }
+    if (label) miniMarker.bindPopup('<b>Ponto simulado</b><br>' + escHtml(label)).openPopup();
+    else if (miniMarker.getPopup()) miniMarker.closePopup();
+    miniMap.panTo([lat, lng]);
+  }
+
   function renderSim(){
     if (!lastSim) return;
     var s = lastSim, el = document.getElementById('sim-result');
     el.hidden = false;
     var z = s.nome ? ZONAS.find(function(x){ return x.nome === s.nome; }) : null;
-    var dist = haversineKm(P.cozinha[0], P.cozinha[1], s.lat, s.lng);
+    var dist = pontoDistKm(P.cozinha[0], P.cozinha[1], s.lat, s.lng);
     var html = '<div class="sim-line"><span>Local</span><b>' +
         escHtml(s.label || (s.lat.toFixed(4) + ', ' + s.lng.toFixed(4))) + '</b></div>' +
       '<div class="sim-line"><span>Bairro</span><b>' + (s.nome ? escHtml(s.nome) : 'fora dos bairros analisados') + '</b></div>' +
-      '<div class="sim-line"><span>Distância da cozinha</span><b>' + dist.toFixed(1).replace('.', ',') + ' km</b></div>' +
+      '<div class="sim-line"><span>Distância da cozinha (reta)</span><b>' + dist.toFixed(1).replace('.', ',') + ' km</b></div>' +
       '<div class="reach-badges">' +
         reachBadge(s.reach['bike-15'], 'bike 15 min') + reachBadge(s.reach['bike-25'], 'bike 25 min') +
         reachBadge(s.reach['carro-20'], 'carro 20 min') + reachBadge(s.reach['carro-35'], 'carro 35 min') + '</div>';
     if (z){
-      var rec = recomendacao(z), mps = Math.round(z.mercado * state.captura / 100);
+      var rec = recomendacao(z);
+      var mps = mpsZona(z), ml = margemZona(z), contrib = mps * P.semanas_mes * ml;
       html += '<div class="sim-line"><span>Recomendação</span><span class="rec-badge ' + rec.classe + '">' + rec.rotulo + '</span></div>' +
         '<div class="sim-line"><span>Score · concorrência</span><b>' + Math.round(z.score) + ' · ' + nivelConcorrencia(z) + ' (' + z.conc + ' rest.)</b></div>' +
-        '<div class="sim-line"><span>Demanda do bairro</span><b>≈ ' + fmtInt.format(mps) + ' marmitas/sem · ' + fmtBRL0.format(receita(z)) + '/mês</b></div>' +
+        '<div class="sim-line"><span>Demanda do bairro (captura ' + fmtPct1(state.captura) + ')</span><b>≈ ' + fmtInt.format(Math.round(mps)) + ' marmitas/sem</b></div>' +
+        '<div class="sim-line"><span>Margem líq./marmita (' + escHtml(modoNome()) + ')</span><b>' + fmtBRL2.format(ml) + '</b></div>' +
+        '<div class="sim-line"><span>Contribuição/mês</span><b>' + fmtBRL0.format(contrib) + '</b></div>' +
         '<p class="popup-cap" style="margin-top:8px">' + rec.motivo + '</p>';
     } else {
       html += '<p class="popup-cap" style="margin-top:8px">Sem estimativa de demanda: o ponto está fora dos 16 bairros da Zona Sul analisados.</p>';
     }
     el.innerHTML = html;
   }
-  function refreshSim(){ if (lastSim) renderSim(); }
 
-  function setSimPoint(lat, lng, label){
+  function setSimPoint(lat, lng, label, fromDrag){
     lastSim = { lat: lat, lng: lng, label: label, nome: bairroAt(lat, lng), reach: reachAt(lat, lng) };
-    if (map){
-      if (simMarker) map.removeLayer(simMarker);
-      simMarker = L.marker([lat, lng], { zIndexOffset: 2000 }).addTo(map);
-      simMarker.bindPopup('<b>Ponto simulado</b>' + (label ? '<br>' + escHtml(label) : '')).openPopup();
-      map.panTo([lat, lng]);
-    }
+    if (!fromDrag) placeMiniMarker(lat, lng, label);
     renderSim();
   }
 
@@ -1245,27 +1537,159 @@
   });
   simInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') document.getElementById('sim-buscar').click(); });
 
-  var pickBtn = document.getElementById('sim-pick');
-  pickBtn.addEventListener('click', function(){
-    if (!map){ simHint.textContent = 'O mapa não carregou.'; return; }
-    picking = !picking;
-    pickBtn.classList.toggle('armed', picking);
-    document.getElementById('map').classList.toggle('map-cursor-pick', picking);
-    simHint.textContent = picking ? 'Clique em um ponto no mapa…' : '';
+  /* ============ B) economia unitária & ponto de equilíbrio ============ */
+  function renderEconomia(){
+    var el = document.getElementById('econ-card');
+    if (!el) return;
+    var mb = margemBruta(), ce = custoEntregaMedio(), mc = mb - ce;
+    var ceLabel = biz.modo === 'propria'
+      ? 'Custo de entrega/marmita — média atual (' + fmtBRL2.format(NEG.custo_entrega_pedido) + '/pedido ÷ ' + NEG.marmitas_por_pedido + ' marmitas)'
+      : biz.modo === 'ifood'
+        ? 'Custo de entrega/marmita — comissão iFood (' + fmtPct1(biz.ifoodPct) + ' × preço)'
+        : 'Custo de entrega/marmita — salário ÷ volume atual (' + fmtInt.format(P.producao_atual) + '/sem × ' + String(P.semanas_mes).replace('.', ',') + ')';
+    var html =
+      '<div class="sim-line"><span>Margem bruta/marmita (preço − custo direto)</span><b>' + fmtBRL2.format(mb) + '</b></div>' +
+      '<div class="sim-line"><span>' + ceLabel + '</span><b>' + fmtBRL2.format(ce) + '</b></div>' +
+      '<div class="sim-line"><span>Margem de contribuição/marmita</span><b>' + fmtBRL2.format(mc) + '</b></div>';
+    if (mc > 0){
+      var beMes = biz.fixos / mc, beSem = beMes / P.semanas_mes;
+      var segur = (P.producao_atual - beSem) / P.producao_atual * 100;
+      var lucroMes = P.producao_atual * P.semanas_mes * mc - biz.fixos;
+      var incr = P.ociosa * P.semanas_mes * mc;
+      html +=
+        '<div class="sim-line"><span>Ponto de equilíbrio (fixos ÷ margem de contribuição)</span><b>' +
+          fmtInt.format(Math.round(beMes)) + ' marmitas/mês ≈ ' + fmtInt.format(Math.round(beSem)) + '/sem</b></div>' +
+        '<div class="sim-line"><span>Margem de segurança (produção atual ' + fmtInt.format(P.producao_atual) + '/sem)</span><b>' +
+          segur.toFixed(0) + '%</b></div>' +
+        '<div class="sim-line"><span>Lucro operacional atual/mês</span><b>' + fmtBRL0.format(lucroMes) + '</b></div>' +
+        '<div class="sim-line"><span>Contribuição incremental da capacidade ociosa (' + fmtInt.format(P.ociosa) + '/sem)</span><b>' +
+          fmtBRL0.format(incr) + '</b></div>';
+      html += lucroMes >= 0
+        ? '<p class="popup-cap" style="margin-top:10px">Os custos fixos já estão cobertos pela produção atual — cada marmita a mais é (quase) margem pura. O gargalo é produção, não mercado.</p>'
+        : '<p class="popup-cap" style="margin-top:10px">Atenção: com essas premissas a produção atual está abaixo do ponto de equilíbrio — o negócio ainda não cobre os fixos.</p>';
+    } else {
+      html += '<p class="popup-cap" style="margin-top:10px">Margem de contribuição ≤ 0: com essas premissas cada marmita dá prejuízo. Ajuste preço, custo ou modo de entrega.</p>';
+    }
+    el.innerHTML = html;
+  }
+
+  /* ============ C) margem por zona ============ */
+  var mSort = { key: 'contrib', dir: -1 };
+  function margemClass(ml){
+    if (ml <= 0) return 'm-neg';
+    if (ml < margemBruta() * 0.5) return 'm-mid';
+    return 'm-pos';
+  }
+  function renderMargemZonas(){
+    var body = document.getElementById('margem-body');
+    if (!body) return;
+    var rows = ZONAS.map(function(z){
+      var ml = margemZona(z), mps = mpsZona(z);
+      return { nome: z.nome, dist: zonaDistKm(z), margem: ml, mps: mps, contrib: mps * P.semanas_mes * ml };
+    });
+    rows.sort(function(a, b){
+      if (mSort.key === 'nome'){
+        var va = a.nome.toLowerCase(), vb = b.nome.toLowerCase();
+        return mSort.dir * (va < vb ? -1 : va > vb ? 1 : 0);
+      }
+      return mSort.dir * (a[mSort.key] - b[mSort.key]);
+    });
+    body.innerHTML = rows.map(function(r){
+      return '<tr>' +
+        '<td class="zona-name">' + escHtml(r.nome) + '</td>' +
+        '<td class="num">' + r.dist.toFixed(1).replace('.', ',') + '</td>' +
+        '<td class="num ' + margemClass(r.margem) + '">' + fmtBRL2.format(r.margem) + '</td>' +
+        '<td class="num">' + fmtInt.format(Math.round(r.mps)) + '</td>' +
+        '<td class="num ' + (r.contrib <= 0 ? 'm-neg' : 'receita-cell') + '">' + fmtBRL0.format(r.contrib) + '</td>' +
+        '</tr>';
+    }).join('');
+    document.querySelectorAll('#margem-table thead th.sortable').forEach(function(th){
+      var arrow = th.querySelector('.arrow');
+      arrow.textContent = (th.getAttribute('data-mkey') === mSort.key) ? (mSort.dir === -1 ? '▼' : '▲') : '';
+    });
+    var nota = document.getElementById('margem-nota');
+    if (nota){
+      if (biz.modo === 'propria'){
+        var byM = rows.slice().sort(function(a, b){ return b.margem - a.margem; });
+        var top = byM[0], bot = byM[byM.length - 1];
+        nota.textContent = 'Com ' + modoNome() + ', ' + top.nome + ' tem a melhor margem por marmita (' +
+          fmtBRL2.format(top.margem) + ') e ' + bot.nome + ' a pior (' + fmtBRL2.format(bot.margem) +
+          ') — distância come margem, então zona cheia e longe pode render menos que uma vizinha.';
+      } else {
+        nota.textContent = 'No modo ' + modoNome() + ' o custo de entrega não depende da distância — a margem por marmita (' +
+          fmtBRL2.format(margemBruta() - custoEntregaMedio()) + ') é igual em todas as zonas; o que diferencia é o volume.';
+      }
+    }
+  }
+  document.querySelectorAll('#margem-table thead th.sortable').forEach(function(th){
+    th.addEventListener('click', function(){
+      var key = th.getAttribute('data-mkey');
+      if (mSort.key === key) mSort.dir = -mSort.dir;
+      else { mSort.key = key; mSort.dir = key === 'nome' ? 1 : -1; }
+      renderMargemZonas();
+    });
   });
 
-  /* ============ calculadora de meta ============ */
+  /* ============ D) combinação ótima p/ a capacidade ociosa ============ */
+  function renderCombo(){
+    var el = document.getElementById('combo-card');
+    if (!el) return;
+    var ociosa = P.ociosa || 250;
+    var cands = ZONAS
+      .filter(function(z){ return !servedHoje(z) && ((z.comp && z.comp[1]) || 0) >= 55; })
+      .map(function(z){ return { nome: z.nome, ml: margemZona(z), mps: mpsZona(z) }; })
+      .sort(function(a, b){ return b.ml - a.ml; });
+    var rem = ociosa, itens = [], contrib = 0, usado = 0;
+    for (var i = 0; i < cands.length && rem > 0.5; i++){
+      var c = cands[i], use = Math.min(c.mps, rem);
+      itens.push({ nome: c.nome, mps: c.mps, use: use, ml: c.ml });
+      contrib += use * P.semanas_mes * c.ml;
+      usado += use;
+      rem -= use;
+    }
+    var html;
+    if (!itens.length){
+      html = '<p class="popup-cap">Nenhuma zona candidata (não atendida e alcançável de bike) com as premissas atuais.</p>';
+    } else {
+      html = itens.map(function(it){
+        var parcial = it.use < it.mps - 0.5
+          ? ' <span style="font-size:.75rem;color:var(--ink-2)">(usa ' + fmtInt.format(Math.round(it.use)) + ' — corta na capacidade)</span>' : '';
+        return '<div class="sim-line"><span>' + escHtml(it.nome) + parcial + '</span><b>≈ ' +
+          fmtInt.format(Math.round(it.mps)) + '/sem · ' + fmtBRL2.format(it.ml) + '/marmita</b></div>';
+      }).join('');
+      html += '<div class="sim-line" style="border-top:2px solid var(--line)"><span><b>Total preenchido</b></span><b>' +
+        fmtInt.format(Math.round(usado)) + ' de ' + fmtInt.format(ociosa) + ' marmitas/sem</b></div>' +
+        '<div class="sim-line"><span><b>Contribuição incremental</b></span><b>' + fmtBRL0.format(contrib) + '/mês</b></div>';
+      if (itens[0].mps >= ociosa){
+        html += '<p class="popup-cap" style="margin-top:8px">' + escHtml(itens[0].nome) +
+          ' sozinha já satura a capacidade ociosa na captura de ' + fmtPct1(state.captura) +
+          ' — o limite é produção, não demanda.</p>';
+      } else if (rem > 0.5){
+        html += '<p class="popup-cap" style="margin-top:8px">Mesmo somando todas as zonas candidatas, sobram ≈ ' +
+          fmtInt.format(Math.round(rem)) + ' marmitas/sem de capacidade — dá para subir a captura ou adensar onde já atende.</p>';
+      }
+    }
+    el.innerHTML = html;
+  }
+
+  /* ============ G) calculadora de meta (por margem de contribuição) ============ */
   var metaSlider = document.getElementById('meta-slider');
   function renderMeta(){
     var meta = parseInt(metaSlider.value, 10);
     document.getElementById('meta-val').textContent = fmtBRL0.format(meta);
-    var porMarmita = P.gasto_fora * P.semanas_mes;      // R$/mês por marmita/semana
-    var marmSem = meta / porMarmita;
+    var el = document.getElementById('meta-result');
+    var mc = margemContrib();
+    if (mc <= 0){
+      el.innerHTML = '<p class="popup-cap">Margem de contribuição ≤ 0 nas premissas atuais — ajuste preço, custo ou modo de entrega lá em cima.</p>';
+      return;
+    }
+    var marmSem = meta / (mc * P.semanas_mes);
     var mercadoBike = ZONAS.filter(function(z){ return (z.comp && z.comp[1]) >= 55; })
                            .reduce(function(s, z){ return s + z.mercado; }, 0);
     var capturaNec = mercadoBike ? (marmSem / mercadoBike * 100) : 0;
     var ociosa = P.ociosa || 250, cabe = marmSem <= ociosa;
-    document.getElementById('meta-result').innerHTML =
+    el.innerHTML =
+      '<div class="sim-line"><span>Margem de contribuição usada (' + escHtml(modoNome()) + ')</span><b>' + fmtBRL2.format(mc) + '/marmita</b></div>' +
       '<div class="sim-line"><span>Marmitas/semana necessárias</span><b>≈ ' + fmtInt.format(Math.round(marmSem)) + '</b></div>' +
       '<div class="sim-line"><span>Captura equivalente (bairros de bike)</span><b>' + capturaNec.toFixed(2).replace('.', ',') + '%</b></div>' +
       '<p class="popup-cap" style="margin-top:8px">' + (cabe
@@ -1274,22 +1698,160 @@
   }
   metaSlider.addEventListener('input', renderMeta);
 
+  /* ============ KPIs clicáveis (detalhe com fonte + fórmula) ============ */
+  function renderKpiDetails(){
+    var mc = margemContrib();
+    var det = document.getElementById('kpi-det-ociosa');
+    if (det){
+      det.innerHTML = mc > 0
+        ? fmtInt.format(P.ociosa) + '/sem × ' + String(P.semanas_mes).replace('.', ',') + ' semanas × ' +
+          fmtBRL2.format(mc) + ' de margem de contribuição ≈ <b>' + fmtBRL0.format(P.ociosa * P.semanas_mes * mc) +
+          '/mês</b> de lucro incremental parado (modo: ' + escHtml(modoNome()) + ').'
+        : 'Margem de contribuição ≤ 0 nas premissas atuais — ajuste na aba Simulações.';
+    }
+    det = document.getElementById('kpi-det-alcance');
+    if (det){
+      det.innerHTML = String(P.alcance_bike_km2).replace('.', ',') + ' km² — isócrona ORS (cycling-regular, 25 min); <b>' +
+        (P.dom_alcance_bike25 != null ? fmtInt.format(P.dom_alcance_bike25) : '—') +
+        ' domicílios</b> ao alcance (rateio setorial IBGE, Censo 2022).';
+    }
+    det = document.getElementById('kpi-det-naoatendida');
+    if (det){
+      var pctDom = (P.dom_alcance_bike25 && P.dom_nao_atendida_bike25 != null)
+        ? Math.round(100 * P.dom_nao_atendida_bike25 / P.dom_alcance_bike25) : null;
+      det.innerHTML = P.area_nao_atendida_pct + '% da área' +
+        (pctDom != null ? ' / <b>' + pctDom + '% dos domicílios</b>' : '') +
+        ' ao alcance de bike (25 min) ainda sem atendimento hoje.';
+    }
+    det = document.getElementById('kpi-det-receita');
+    if (det){
+      var top5 = rankedZonas().slice(0, 5).map(function(z){
+        return escHtml(z.nome) + ' (' + fmtBRL0.format(z._receita) + ')';
+      }).join(' · ');
+      det.innerHTML = 'Top 5 na captura de ' + fmtPct1(state.captura) + ': ' + top5 + '.';
+    }
+  }
+  document.querySelectorAll('.kpi.clickable').forEach(function(card){
+    function toggle(){
+      var d = card.querySelector('.kpi-detail');
+      if (!d) return;
+      d.hidden = !d.hidden;
+      card.setAttribute('aria-expanded', d.hidden ? 'false' : 'true');
+      var caret = card.querySelector('.kpi-caret');
+      if (caret) caret.textContent = d.hidden ? 'detalhes ▾' : 'detalhes ▴';
+    }
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); }
+    });
+  });
+
+  /* ============ H) resumo de impressão (1 página) ============ */
+  function renderPrint(){
+    var el = document.getElementById('print-summary');
+    if (!el) return;
+    var mb = margemBruta(), ce = custoEntregaMedio(), mc = mb - ce;
+    var incr = mc > 0 ? P.ociosa * P.semanas_mes * mc : 0;
+    var kpis = [
+      ['Capacidade ociosa', '~' + fmtInt.format(P.ociosa) + '/sem'],
+      ['Alcance bike 25 min', String(P.alcance_bike_km2).replace('.', ',') + ' km²'],
+      ['Área não atendida', P.area_nao_atendida_pct + '%'],
+      ['Contribuição parada', mc > 0 ? fmtBRL0.format(incr) + '/mês' : '—']
+    ];
+    var econ = [
+      ['Preço · custo direto/marmita', fmtBRL2.format(biz.preco) + ' · ' + fmtBRL2.format(biz.custo)],
+      ['Entrega/marmita (' + modoNome() + ')', fmtBRL2.format(ce)],
+      ['Margem de contribuição/marmita', fmtBRL2.format(mc)]
+    ];
+    if (mc > 0){
+      var beMes = biz.fixos / mc, beSem = beMes / P.semanas_mes;
+      econ.push(['Ponto de equilíbrio', fmtInt.format(Math.round(beMes)) + '/mês ≈ ' + fmtInt.format(Math.round(beSem)) + '/sem']);
+      econ.push(['Lucro operacional atual/mês', fmtBRL0.format(P.producao_atual * P.semanas_mes * mc - biz.fixos)]);
+    }
+    var top6 = ZONAS.slice().sort(function(a, b){ return b.score - a.score; }).slice(0, 6);
+    var linhas = top6.map(function(z){
+      return '<tr><td>' + escHtml(z.nome) + '</td><td class="num">' + Math.round(z.score) +
+        '</td><td class="num">' + fmtInt.format(Math.round(mpsZona(z))) +
+        '</td><td class="num">' + fmtBRL0.format(contribZonaMes(z)) + '</td></tr>';
+    }).join('');
+    var alvos = ZONAS.filter(function(z){ return recomendacao(z).rotulo === 'Expandir agora'; })
+                     .sort(function(a, b){ return b.score - a.score; })
+                     .map(function(z){ return escHtml(z.nome); });
+    el.innerHTML =
+      '<div class="p-kpis">' + kpis.map(function(k){
+        return '<div class="p-kpi"><span class="l">' + k[0] + '</span><span class="v">' + k[1] + '</span></div>';
+      }).join('') + '</div>' +
+      '<div class="p-cols">' +
+        '<div><h3>Economia unitária &amp; ponto de equilíbrio</h3>' +
+          econ.map(function(e2){ return '<div class="p-line"><span>' + e2[0] + '</span><b>' + e2[1] + '</b></div>'; }).join('') +
+        '</div>' +
+        '<div><h3>Top zonas por score (captura ' + fmtPct1(state.captura) + ')</h3>' +
+          '<table><thead><tr><th>Zona</th><th class="num">Score</th><th class="num">Marm./sem</th><th class="num">Contrib./mês</th></tr></thead>' +
+          '<tbody>' + linhas + '</tbody></table>' +
+        '</div>' +
+      '</div>' +
+      '<p class="p-acao"><b>Ação:</b> expandir agora para ' +
+        (alvos.length ? alvos.join(', ') : '—') +
+        ' — alcançáveis de bike, sem atendimento hoje. ' +
+        (mc > 0 ? 'As ~' + fmtInt.format(P.ociosa) + ' marmitas/sem paradas valem ≈ <b>' + fmtBRL0.format(incr) +
+          '/mês</b> de contribuição: os fixos já estão cobertos, o gargalo é produção, não demanda.' : '') + '</p>' +
+      '<p class="p-note">Premissas: preço ' + fmtBRL2.format(biz.preco) + ' · custo ' + fmtBRL2.format(biz.custo) +
+        ' · fixos ' + fmtBRL0.format(biz.fixos) + '/mês · entrega: ' + modoNome() + ' · captura ' + fmtPct1(state.captura) +
+        '. Fontes: IBGE Censo 2022, OpenStreetMap, isócronas OpenRouteService.</p>';
+  }
+  document.getElementById('btn-print').addEventListener('click', function(){
+    renderPrint();
+    window.print();
+  });
+
+  /* ============ recomputa tudo que depende das premissas de negócio ============ */
+  function renderNegocio(){
+    renderEconomia();
+    renderMargemZonas();
+    renderCombo();
+    renderMeta();
+    renderKpiDetails();
+    renderPrint();
+    if (lastSim) renderSim();
+  }
+
+  /* ============ inputs das premissas de negócio ============ */
+  var BIZ_INPUTS = {
+    'biz-preco':   ['preco', 0.01],
+    'biz-custo':   ['custo', 0],
+    'biz-fixos':   ['fixos', 0],
+    'biz-km':      ['custoKm', 0],
+    'biz-ifood':   ['ifoodPct', 0],
+    'biz-salario': ['salario', 0]
+  };
+  Object.keys(BIZ_INPUTS).forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el) return;
+    var key = BIZ_INPUTS[id][0], min = BIZ_INPUTS[id][1];
+    el.value = String(Math.round(biz[key] * 100) / 100);
+    el.addEventListener('input', function(){
+      var v = parseFloat(String(el.value).replace(',', '.'));
+      if (!isFinite(v) || v < min) return;
+      biz[key] = v;
+      renderNegocio();
+    });
+  });
+  document.querySelectorAll('input[name=biz-modo]').forEach(function(r){
+    r.addEventListener('change', function(){
+      if (!r.checked) return;
+      biz.modo = r.value;
+      document.getElementById('fld-km').hidden = biz.modo !== 'propria';
+      document.getElementById('fld-ifood').hidden = biz.modo !== 'ifood';
+      document.getElementById('fld-sal').hidden = biz.modo !== 'entregador';
+      renderNegocio();
+    });
+  });
+
   /* ============ boot ============ */
   document.getElementById('captura-val').textContent = fmtPct1(state.captura);
   buildMap();
   renderTable();
-  renderMeta();
-  // clique no mapa em modo "escolher ponto" define o ponto simulado
-  if (map){
-    map.on('click', function(e){
-      if (!picking) return;
-      picking = false;
-      pickBtn.classList.remove('armed');
-      document.getElementById('map').classList.remove('map-cursor-pick');
-      simHint.textContent = '';
-      setSimPoint(e.latlng.lat, e.latlng.lng, null);
-    });
-  }
+  renderNegocio();
 })();
 </script>
 </body>

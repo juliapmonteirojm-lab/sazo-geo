@@ -13,9 +13,26 @@ ISOCRONAS = [
 # Premissas do modelo de receita
 CAPACIDADE_SEMANAL = 800
 PRODUCAO_ATUAL = 550
-GASTO_FORA = 32.0        # R$ por refeicao/marmita
+GASTO_FORA = 32.0        # R$ por refeicao/marmita (= preco de venda medio)
 SEMANAS_MES = 4.33
 CAPTURA_BASE = 0.01      # 1,0%
+
+# --- Economia unitaria (informado pela Sazo) ---
+PRECO_MARMITA = 32.0             # preco de venda medio
+CUSTO_MARMITA = 13.0             # custo direto: insumos + embalagem
+MARMITAS_POR_PEDIDO = 4          # media de marmitas por pedido/entrega
+CUSTO_ENTREGA_PEDIDO = 7.0       # custo medio atual por pedido (entrega propria)
+CUSTOS_FIXOS_MES = 12000.0       # cozinha, utilidades, pro-labore
+# Modelo de entrega propria por distancia (editavel no dashboard).
+# ~R$2/km rodado; na area atual (bairros proximos) da perto dos R$7/pedido reais.
+CUSTO_ENTREGA_KM = 2.0
+DIST_ROAD_FACTOR = 1.3           # fator viario sobre a distancia em linha reta
+# iFood plano Entrega: comissao+taxa ~26,5% (pesquisa iFood Parceiros 2026)
+IFOOD_TAXA = 0.265
+# iFood plano Basico (entrega propria via plataforma): ~15,2%
+IFOOD_TAXA_BASICO = 0.152
+# Entregador contratado: salario mensal (entra como custo fixo adicional)
+ENTREGADOR_SALARIO_MES = 2200.0
 
 # --- Censo IBGE (Fase 2) ---
 MUNICIPIO_RIO = "3304557"   # codigo IBGE do municipio do Rio de Janeiro

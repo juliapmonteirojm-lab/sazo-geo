@@ -140,11 +140,12 @@ def build() -> None:
                       + pesos["afinidade"] * afinidade
                       + pesos["baixa_concorrencia"] * baixa_conc)
         score = max(0, min(100, score))
+        dist_km = round(_haversine_km(config.COZINHA_LATLNG, z["latlng"]) * config.DIST_ROAD_FACTOR, 2)
         zonas_out.append({
             "nome": z["nome"], "latlng": z["latlng"],
             "score": score, "dom": z["dom"], "pessoas": z["pessoas"],
             "conc": z["conc"], "afin": z["afin_raw"], "mercado": z["mercado"],
-            "no_alcance_bike25": z["no_alcance_bike25"],
+            "no_alcance_bike25": z["no_alcance_bike25"], "dist_km": dist_km,
             "comp": [demanda, acesso, afinidade, baixa_conc],
         })
     zonas_out.sort(key=lambda z: z["score"], reverse=True)
@@ -196,6 +197,17 @@ def build() -> None:
             "fonte": "OpenStreetMap (Overpass)",
             "concorrentes": sum(z["conc"] for z in zonas_out),
             "afinidade": sum(z["afin"] for z in zonas_out),
+        },
+        "negocio": {
+            "preco": config.PRECO_MARMITA,
+            "custo_marmita": config.CUSTO_MARMITA,
+            "marmitas_por_pedido": config.MARMITAS_POR_PEDIDO,
+            "custo_entrega_pedido": config.CUSTO_ENTREGA_PEDIDO,
+            "custos_fixos_mes": config.CUSTOS_FIXOS_MES,
+            "custo_entrega_km": config.CUSTO_ENTREGA_KM,
+            "ifood_taxa": config.IFOOD_TAXA,
+            "ifood_taxa_basico": config.IFOOD_TAXA_BASICO,
+            "entregador_salario_mes": config.ENTREGADOR_SALARIO_MES,
         },
     }
 
