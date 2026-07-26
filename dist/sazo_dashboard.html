@@ -627,19 +627,28 @@
 
     map = L.map('map', { scrollWheelZoom: false, zoomControl: true });
 
-    /* blocos base — Positron claro / dark_all no esquema escuro */
+    /* blocos base — CARTO Voyager (ruas + rótulos) / dark_matter no escuro.
+       Voyager mostra a malha viária de verdade, ao contrário do Positron. */
     var darkMq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
     function tileUrl(){
-      var variant = (darkMq && darkMq.matches) ? 'dark_all' : 'light_all';
+      var variant = (darkMq && darkMq.matches) ? 'rastertiles/dark_matter' : 'rastertiles/voyager';
       return 'https://{s}.basemap.cartocdn.com/' + variant + '/{z}/{x}/{y}{r}.png';
     }
     var tiles = L.tileLayer(tileUrl(), {
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       subdomains: 'abcd',
-      maxZoom: 19
+      maxZoom: 20
     }).addTo(map);
+    /* fallback: se os tiles do CARTO não carregarem, usa o OSM padrão */
+    var usouFallback = false;
+    tiles.on('tileerror', function(){
+      if (usouFallback) return;
+      usouFallback = true;
+      tiles.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+      tiles.options.subdomains = 'abc';
+    });
     if (darkMq && darkMq.addEventListener){
-      darkMq.addEventListener('change', function(){ tiles.setUrl(tileUrl()); });
+      darkMq.addEventListener('change', function(){ if(!usouFallback) tiles.setUrl(tileUrl()); });
     }
 
     /* scroll do mouse só depois de clicar no mapa (a página continua rolável) */
