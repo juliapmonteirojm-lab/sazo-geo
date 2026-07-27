@@ -59,17 +59,19 @@ def run(force: bool = False) -> dict:
     key = _load_key()
     features = []
     for spec in config.ISOCRONAS:
-        kmh = spec["kmh"]
-        # tempo (min) -> distancia de rede (metros) usando a velocidade assumida
-        metros = [round(kmh * (m / 60) * 1000) for m in spec["mins"]]
-        print(f"ORS -> {spec['profile']} {spec['mins']}min @ {kmh}km/h = {metros}m (distance)")
-        fc = _fetch(spec["profile"], metros, key, range_type="distance")
-        for feat, mins, dist_m in zip(fc["features"], spec["mins"], metros):
+        kmh, base = spec["kmh"], spec["base_kmh"]
+        # tempo do ORS = tempo rotulado * (velocidade-alvo / velocidade base ORS).
+        # Isocrona por TEMPO preserva a penalizacao de relevo/via do perfil.
+        segundos = [round(m * 60 * (kmh / base)) for m in spec["mins"]]
+        print(f"ORS -> {spec['profile']} {spec['mins']}min @ {kmh}km/h "
+              f"(base {base}) = {segundos}s (time)")
+        fc = _fetch(spec["profile"], segundos, key, range_type="time")
+        for feat, mins, secs in zip(fc["features"], spec["mins"], segundos):
             feat["properties"] = {
                 "mode": spec["mode"],
                 "minutes": mins,
                 "kmh": kmh,
-                "metros": dist_m,
+                "seconds_ors": secs,
                 "label": f"{spec['mode']} {mins} min",
             }
             features.append(feat)

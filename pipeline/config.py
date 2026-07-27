@@ -4,18 +4,22 @@
 COZINHA_LNGLAT = [-43.184, -22.951]
 COZINHA_LATLNG = [-22.951, -43.184]  # ordem do Leaflet
 
-# Velocidades REAIS de entrega (editaveis). O perfil padrao do ORS assume
-# ciclista esportivo em terreno plano (~19-20 km/h), o que superdimensiona o
-# raio no Rio (morros + carga + transito). Por isso pedimos isocrona por
-# DISTANCIA DE REDE (range_type=distance) e convertemos tempo->distancia com
-# estas velocidades, em vez de confiar na velocidade otimista do ORS.
-VELOCIDADE_BIKE_KMH = 13.0    # bike de entrega carregada, com ladeira/transito
-VELOCIDADE_CARRO_KMH = 22.0   # media no transito da Zona Sul do Rio
+# Velocidades REAIS de entrega (editaveis) — o "dial" do alcance.
+# Usamos isocrona por TEMPO do ORS (que ja penaliza morros e tipo de via),
+# mas com orcamento conservador: o perfil padrao anda a ~17 km/h (bike) e
+# ~50 km/h (carro, fluxo livre), rapido demais pro Rio com carga/transito.
+# Pedimos ao ORS o tempo que corresponde a nossa velocidade-alvo:
+#   tempo_ORS = tempo_rotulo * (velocidade_alvo / velocidade_base_ORS)
+# Assim a FORMA respeita relevo e a ESCALA reflete a entrega real.
+VELOCIDADE_BIKE_KMH = 12.0    # bike de entrega carregada, com ladeira/transito
+VELOCIDADE_CARRO_KMH = 24.0   # media no transito da Zona Sul do Rio
+ORS_BASE_BIKE_KMH = 17.0      # velocidade efetiva do perfil ORS (calibrada)
+ORS_BASE_CARRO_KMH = 50.0
 
-# Isocronas: perfil ORS, rotulos em minutos, modo e velocidade assumida.
+# Isocronas: perfil ORS, rotulos em minutos, modo, velocidade-alvo e base ORS.
 ISOCRONAS = [
-    {"profile": "cycling-regular", "mins": [15, 25], "mode": "bike",  "kmh": VELOCIDADE_BIKE_KMH},
-    {"profile": "driving-car",     "mins": [20, 35], "mode": "carro", "kmh": VELOCIDADE_CARRO_KMH},
+    {"profile": "cycling-regular", "mins": [15, 25], "mode": "bike",  "kmh": VELOCIDADE_BIKE_KMH,  "base_kmh": ORS_BASE_BIKE_KMH},
+    {"profile": "driving-car",     "mins": [20, 35], "mode": "carro", "kmh": VELOCIDADE_CARRO_KMH, "base_kmh": ORS_BASE_CARRO_KMH},
 ]
 
 # Premissas do modelo de receita
